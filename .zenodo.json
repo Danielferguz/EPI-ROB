@@ -1,0 +1,9 @@
+{
+  "title": "EPI-ROB: browser-based risk-of-bias assessment (RoB 2, ROBINS-I, QUADAS-2, PROBAST, AMSTAR 2)",
+  "upload_type": "software",
+  "description": "Browser tool for risk-of-bias and critical appraisal in systematic reviews: signalling questions with the official RoB 2, QUADAS-2, PROBAST and AMSTAR 2 algorithms (RoB 2 verified against all answer combinations), ROBINS-I, two-reviewer agreement (Cohen's kappa) and consensus, traffic-light and summary figures for journals, robvis-compatible import/export and methods text. All data stay in the browser.",
+  "creators": [{ "name": "Fernández-Guzmán, Daniel" }],
+  "license": "cc-by-nc-nd-4.0",
+  "access_right": "open",
+  "keywords": ["risk of bias", "RoB 2", "ROBINS-I", "QUADAS-2", "PROBAST", "AMSTAR 2", "systematic review"]
+}

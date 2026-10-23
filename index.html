@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EPI-ROB</title>
+<meta name="description" content="EPI-ROB (EPI-LAB): evaluación del riesgo de sesgo en el navegador con RoB 2, ROBINS-I, QUADAS-2, PROBAST y AMSTAR 2. Preguntas señalizadoras, algoritmos oficiales verificados, dos revisores con concordancia (kappa), semáforo y gráficos de resumen para revistas, exportación robvis.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="css/style.css?v=2026.10.23-1">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 46 40" aria-hidden="true"><rect x="2" y="16" width="4" height="22" rx="1" fill="#4D4D4D"/><rect x="9" y="12" width="4" height="26" rx="1" fill="#4D4D4D"/><rect x="16" y="9" width="4" height="29" rx="1" fill="#5BA7B8"/><rect x="23" y="22" width="4" height="16" rx="1" fill="#5BA7B8"/><rect x="30" y="28" width="4" height="10" rx="1" fill="#4D4D4D"/><path d="M8 4 C20 4 22 18 28 22 S38 30 42 28" fill="none" stroke="#4D4D4D" stroke-width="1.6"/><circle cx="8" cy="5" r="4" fill="#8B2E3B"/><circle cx="28" cy="21" r="3" fill="#4D4D4D"/><circle cx="42" cy="28" r="3" fill="#5BA7B8"/></svg>
+    <div><h1><span class="epi">EPI</span><span class="data">-ROB</span></h1><p>Un módulo de <b>EPI-LAB</b> · Riesgo de sesgo y calidad de la evidencia</p></div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="guia" class="active"><span class="n">1</span>Guía y ejemplos</button>
+    <button role="tab" data-tab="proyecto"><span class="n">2</span>Proyecto y estudios</button>
+    <button role="tab" data-tab="evaluar"><span class="n">3</span>Evaluar</button>
+    <button role="tab" data-tab="consenso"><span class="n">4</span>Concordancia y consenso</button>
+    <button role="tab" data-tab="resultados"><span class="n">5</span>Resultados y figuras</button>
+    <button role="tab" data-tab="reporte"><span class="n">6</span>Exportar y reporte</button>
+    <button role="tab" data-tab="ayuda"><span class="n">?</span>Ayuda</button>
+  </nav>
+</header>
+<main>
+<section id="tab-guia" class="tab active"><div id="guide-out"></div></section>
+<section id="tab-proyecto" class="tab"><div id="proj-out"></div></section>
+<section id="tab-evaluar" class="tab"><div id="eval-out"></div></section>
+<section id="tab-consenso" class="tab"><div id="cons-out"></div></section>
+<section id="tab-resultados" class="tab"><div id="res-out"></div>
+  <div class="card"><h2>Formato de figuras</h2><p class="sub">Se aplica a las descargas SVG/PNG/TIFF.</p><div class="form"><label>Ancho <select id="fig-width"><option value="single">1 columna (85 mm)</option><option value="onehalf">1,5 columnas (120 mm)</option><option value="double" selected>2 columnas (174 mm)</option><option value="custom">Personalizado</option></select></label><label>Ancho personalizado (mm) <input id="fig-mm" type="number" value="174"></label><label>Resolución <select id="fig-dpi"><option>300</option><option selected>600</option><option>1200</option></select></label><label>Fuente <select id="fig-font"><option value="arial">Arial</option><option value="helvetica">Helvetica</option><option value="times">Times New Roman</option></select></label></div></div></section>
+<section id="tab-reporte" class="tab"><div id="rep-out"></div></section>
+<section id="tab-ayuda" class="tab"><div class="card prose" id="help"></div></section>
+</main>
+<footer class="foot">EPI-ROB · un módulo de EPI-LAB · © Daniel Fernández-Guzmán · CC BY-NC-ND 4.0 · Los datos se guardan solo en su navegador; ningún dato se envía a servidores. Los algoritmos proponen juicios; la decisión final y su justificación son del evaluador. · v2026.10.23-1</footer>
+<script type="module" src="js/app.js?v=2026.10.23-1"></script>
+</body>
+</html>

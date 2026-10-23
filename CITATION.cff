@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use EPI-ROB, please cite it as below."
+title: "EPI-ROB: browser-based risk-of-bias assessment (RoB 2, ROBINS-I, QUADAS-2, PROBAST, AMSTAR 2)"
+type: software
+authors:
+  - family-names: "Fernández-Guzmán"
+    given-names: "Daniel"
+version: "2026.10.22"
+date-released: "2026-10-22"
+license: CC-BY-NC-ND-4.0
+repository-code: "https://github.com/Danielferguz/EPI-ROB"
+url: "https://danielferguz.github.io/EPI-ROB/"
+keywords:
+  - risk of bias
+  - RoB 2
+  - ROBINS-I
+  - QUADAS-2
+  - PROBAST
+  - AMSTAR 2
+  - systematic review
