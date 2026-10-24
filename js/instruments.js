@@ -1,7 +1,7 @@
 // Instrumentos de riesgo de sesgo: RoB 2, ROBINS-I, QUADAS-2, PROBAST y AMSTAR 2.
 // Cada dominio define sus preguntas señalizadoras (con condiciones de visibilidad) y, cuando el instrumento publica un algoritmo,
 // la función que propone el juicio. Los algoritmos de RoB 2 siguen las tablas 4, 6, 8, 10, 12 y 14 de la guía oficial (Higgins et al., 2019).
-export const ANS = { Y: 'Sí', PY: 'Probablemente sí', PN: 'Probablemente no', N: 'No', NI: 'Sin información', NA: 'No aplica', U: 'No claro' };
+export const ANS = { Y: 'Sí', PY: 'Probablemente sí', PN: 'Probablemente no', N: 'No', NI: 'Sin información', NA: 'No aplica', U: 'No claro', SY: 'Sí, fuerte (sustancial)', WY: 'Sí, débil (no sustancial)', WN: 'No, pero débil (no sustancial)', SN: 'No, fuerte (sustancial)' };
 export const O5 = ['Y', 'PY', 'PN', 'N', 'NI'], O5NA = [...O5, 'NA'], OYN = ['Y', 'N', 'NI'], OYNA = [...OYN, 'NA'];
 export const isY = v => v === 'Y' || v === 'PY';
 export const isN = v => v === 'N' || v === 'PN';
@@ -15,9 +15,12 @@ export const LV = {
   unclear: { t: 'No claro', s: '?', c: '#9AA3A6' }, ni: { t: 'Sin información', s: '?', c: '#9AA3A6' },
   y: { t: 'Sí', s: '+', c: '#4F9D6B' }, py: { t: 'Sí parcial', s: '±', c: '#E3B341' }, n: { t: 'No', s: '×', c: '#C25450' }, na: { t: 'No aplica', s: '·', c: '#9AA3A6' },
   chigh: { t: 'Confianza alta', s: 'A', c: '#4F9D6B' }, cmod: { t: 'Confianza moderada', s: 'M', c: '#E3B341' }, clow: { t: 'Confianza baja', s: 'B', c: '#C25450' }, ccrit: { t: 'Confianza críticamente baja', s: 'CB', c: '#8B2E3B' },
+  lowc: { t: 'Bajo, salvo confusión no controlada', s: '+', c: '#8BC34A' }, vhigh: { t: 'Riesgo muy alto', s: '!', c: '#1B1B1B' },
+  inc: { t: 'Incluir', s: '+', c: '#4F9D6B' }, seek: { t: 'Buscar más información', s: '?', c: '#E3B341' }, exc: { t: 'Excluir', s: '×', c: '#C25450' },
+  qgood: { t: 'Calidad buena', s: 'B', c: '#4F9D6B' }, qfair: { t: 'Calidad regular', s: 'R', c: '#E3B341' }, qpoor: { t: 'Calidad pobre', s: 'P', c: '#C25450' },
   conc_low: { t: 'Preocupación baja', s: '+', c: '#4F9D6B' }, conc_high: { t: 'Preocupación alta', s: '×', c: '#C25450' }, conc_unclear: { t: 'Preocupación no clara', s: '?', c: '#9AA3A6' },
 };
-const J = (j, why) => ({ j, why });
+export const J = (j, why) => ({ j, why });
 
 // ------------------------------------------------------------------ RoB 2
 const rob2Items = {
@@ -323,21 +326,23 @@ export function amOverall(js) {
 }
 
 export const INSTRUMENTS = [ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2];
+export const register = (...i) => INSTRUMENTS.push(...i);
 export const instOf = id => INSTRUMENTS.find(i => i.id === id);
 export const defMeta = inst => Object.fromEntries(inst.meta.filter(m => m.def != null).map(m => [m.id, m.def]));
 
 // ------------------------------------------------------------------ evaluación de una valoración
 export const visibleItems = (d, a, meta) => d.items.filter(it => !it.show || it.show(a, meta));
 function evalDomain(d, a, meta) {
-  if (!d.algo) return { sug: null, why: 'ROBINS-I no define un algoritmo: juzgue según los criterios del dominio.' };
+  if (!d.algo) return { sug: null, why: 'Este instrumento no define un algoritmo: juzgue según los criterios del dominio (consulte «¿Cuándo corresponde cada juicio?»).' };
   try { const r = d.algo(getter(a), a, meta); return { sug: r.j, why: r.why }; } catch (e) { if (e instanceof Pending) return { sug: null, pending: true, why: 'Faltan respuestas para proponer un juicio.' }; throw e; }
 }
 // asm = { ans:{id:code}, jud:{dominio:{sel,note,app,dir}}, ov:{sel,note}, chk }
 export function evalAssessment(inst, meta, asm = {}) {
+  if (inst.evaluate) return inst.evaluate(meta, asm);
   if (inst.kind === 'amstar') {
     const items = inst.items.map(it => { const r = amItem(it, meta, asm), o = (asm.jud || {})[`i${it.n}`] || {}; return { n: it.n, crit: !!it.crit, j: r.j, why: r.why, note: o.note || '' }; });
     const done = items.every(x => x.j), ov = done ? amOverall(items.map(x => x.j)) : { j: null, why: 'Califique los 16 ítems.', cw: 0, nw: 0 };
-    return { items, overall: { j: ov.j, why: ov.why, cw: ov.cw, nw: ov.nw, note: (asm.ov || {}).note || '' } };
+    return { items, cells: items.map(x => x.j), cols: AMSTAR2.items.map(it => ({ id: String(it.n), short: it.crit ? `${it.n}*` : String(it.n), name: `Ítem ${it.n}${it.crit ? ' (crítico)' : ''}`, crit: it.crit })), legend: ['y', 'py', 'n', 'na'], legendOverall: ['chigh', 'cmod', 'clow', 'ccrit'], overall: { j: ov.j, why: ov.why, cw: ov.cw, nw: ov.nw, note: (asm.ov || {}).note || '' } };
   }
   const a = asm.ans || {}, jud = asm.jud || {};
   const doms = inst.doms(meta).map(d => {
@@ -348,4 +353,4 @@ export function evalAssessment(inst, meta, asm = {}) {
   return { doms, overall: { sug: r.j, why: r.why, sel: ov.sel || null, j: ov.sel || r.j, note: ov.note || '' } };
 }
 // juicio final (sin evaluar de nuevo): para figuras y tablas
-export const finalOf = (inst, meta, asm) => { const e = evalAssessment(inst, meta, asm); return inst.kind === 'amstar' ? { items: e.items.map(x => x.j), overall: e.overall.j } : { doms: e.doms.map(d => d.j), overall: e.overall.j, app: e.doms.map(d => d.app) }; };
+export const finalOf = (inst, meta, asm) => { const e = evalAssessment(inst, meta, asm); return e.cells ? { items: e.cells, overall: e.overall.j } : { doms: e.doms.map(d => d.j), overall: e.overall.j, app: e.doms.map(d => d.app) }; };

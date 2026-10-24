@@ -1,5 +1,5 @@
 // Proyecto de evaluación: estudios, valoraciones de uno o dos revisores y consenso; persistencia, concordancia y formatos de intercambio.
-import { instOf, defMeta, evalAssessment, finalOf, LV } from './instruments.js?v=2026.10.23-1';
+import { instOf, defMeta, evalAssessment, finalOf, LV } from './instruments.js?v=2026.10.24-2';
 
 const KEY = 'epi-rob-v1';
 export const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
@@ -31,12 +31,12 @@ export function kappa(pairs, levels, weighted = false) {
   return { n: N, po: agree / N, kappa: pe === 1 ? (po === 1 ? 1 : NaN) : (po - pe) / (1 - pe) };
 }
 export const kappaLabel = k => (!isFinite(k) ? '–' : k < 0 ? 'peor que el azar' : k < 0.21 ? 'leve' : k < 0.41 ? 'regular' : k < 0.61 ? 'moderada' : k < 0.81 ? 'sustancial' : 'casi perfecta');
-const ORDINAL = { rob2: ['low', 'some', 'high'], 'robins-i': ['low', 'moderate', 'serious', 'critical'] };
+const ORDINAL = { rob2: ['low', 'some', 'high'], 'robins-i': ['low', 'moderate', 'serious', 'critical'], 'robins-e': ['low', 'some', 'high', 'vhigh'] };
 // por dominio y global: acuerdo, kappa y kappa ponderado lineal (solo escalas ordinales)
 export function agreement(p) {
   const inst = instOf(p.inst), rows = [], ev = p.studies.map(s => ({ A: evalStudy(p, s, 'A'), B: evalStudy(p, s, 'B') }));
-  const cols = inst.kind === 'amstar' ? inst.items.map((it, i) => ({ id: `Ítem ${it.n}`, get: e => e.items[i].j, levels: ['y', 'py', 'n'] })) : inst.doms(p.studies[0]?.meta || defMeta(inst)).map((d, i) => ({ id: d.id, name: d.name, get: e => e.doms[i]?.j, levels: inst.levels }));
-  cols.push({ id: 'Global', name: 'Juicio global', get: e => e.overall.j, levels: inst.kind === 'amstar' ? ['chigh', 'cmod', 'clow', 'ccrit'] : inst.levels });
+  const cols = inst.kind === 'nos' ? [['S', 'Selección', e => String(e.stars.S), ['0', '1', '2', '3', '4']], ['C', 'Comparabilidad', e => String(e.stars.C), ['0', '1', '2']], ['O', 'Desenlace', e => String(e.stars.O), ['0', '1', '2', '3']]].map(([id, name, get, levels]) => ({ id, name, get: e => (e.items.every(x => x.j) ? get(e) : null), levels })) : inst.kind === 'checklist' ? inst.items.map((it, i) => ({ id: `Ítem ${it.n}`, get: e => e.items[i].j, levels: ['y', 'n', 'u', 'na'] })) : inst.kind === 'amstar' ? inst.items.map((it, i) => ({ id: `Ítem ${it.n}`, get: e => e.items[i].j, levels: ['y', 'py', 'n'] })) : inst.doms(p.studies[0]?.meta || defMeta(inst)).map((d, i) => ({ id: d.id, name: d.name, get: e => e.doms[i]?.j, levels: inst.levels }));
+  cols.push({ id: 'Global', name: 'Juicio global', get: e => e.overall.j, levels: inst.kind === 'amstar' ? ['chigh', 'cmod', 'clow', 'ccrit'] : inst.overallLevels || inst.levels });
   for (const c of cols) {
     const pairs = ev.map(e => [c.get(e.A), c.get(e.B)]).filter(([a, b]) => a && b), ord = ORDINAL[inst.id];
     const k = kappa(pairs, c.levels), wk = ord && c.levels === inst.levels ? kappa(pairs.filter(([a, b]) => ord.includes(a) && ord.includes(b)), ord, true) : null;
@@ -46,11 +46,11 @@ export function agreement(p) {
 }
 
 // ---------------------------------------------------------------- formatos de intercambio (robvis)
-const EN = { low: 'Low', some: 'Some concerns', high: 'High', moderate: 'Moderate', serious: 'Serious', critical: 'Critical', ni: 'No information', unclear: 'Unclear' };
-const FROM = { ...Object.fromEntries(Object.entries(EN).map(([k, v]) => [v.toLowerCase(), k])), 'bajo': 'low', 'bajo riesgo': 'low', 'algunas preocupaciones': 'some', 'alto': 'high', 'alto riesgo': 'high', 'moderado': 'moderate', 'serio': 'serious', 'crítico': 'critical', 'critico': 'critical', 'sin información': 'ni', 'no claro': 'unclear', 'l': 'low', 'h': 'high', 'u': 'unclear', 'm': 'moderate', 's': 'serious', 'c': 'critical', 'n': 'ni', 'unclear risk': 'unclear', 'no info': 'ni', 'no information': 'ni' };
+const EN = { low: 'Low', lowc: 'Low', some: 'Some concerns', high: 'High', vhigh: 'Very high', moderate: 'Moderate', serious: 'Serious', critical: 'Critical', ni: 'No information', unclear: 'Unclear' };
+const FROM = { ...Object.fromEntries(Object.entries(EN).filter(([k]) => k !== 'lowc').map(([k, v]) => [v.toLowerCase(), k])), 'bajo': 'low', 'bajo riesgo': 'low', 'algunas preocupaciones': 'some', 'alto': 'high', 'alto riesgo': 'high', 'moderado': 'moderate', 'serio': 'serious', 'crítico': 'critical', 'critico': 'critical', 'sin información': 'ni', 'no claro': 'unclear', 'l': 'low', 'h': 'high', 'u': 'unclear', 'm': 'moderate', 's': 'serious', 'c': 'critical', 'n': 'ni', 'unclear risk': 'unclear', 'very high': 'vhigh', 'muy alto': 'vhigh', 'no info': 'ni', 'no information': 'ni' };
 const esc = v => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
 export function robvisCSV(p) {
-  const inst = instOf(p.inst); if (inst.kind === 'amstar') throw new Error('AMSTAR 2 no tiene formato robvis.');
+  const inst = instOf(p.inst); if (!inst.robvis) throw new Error(`${inst.name} no tiene formato robvis.`);
   const first = p.studies[0]?.meta || defMeta(inst), dn = inst.doms(first).map(d => d.id), rows = [['Study', ...dn, 'Overall', 'Weight']];
   for (const s of p.studies) { const f = finalStudy(p, s); rows.push([s.name, ...f.doms.map(j => EN[j] || ''), EN[f.overall] || '', s.weight]); }
   return rows.map(r => r.map(esc).join(',')).join('\n');

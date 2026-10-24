@@ -166,3 +166,7 @@ tr.crude td { color: var(--muted); font-style: italic; }
 .examples { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
 @media (max-width: 860px) { .evalgrid { grid-template-columns: 1fr; } .slist { position: static; max-height: none; } }
 @media print { .top, .foot, .stepnav, .figbar, .tabs, #tab-resultados > .card:last-child, .howto { display: none !important; } .tab { display: none !important; } #tab-resultados { display: block !important; } body { background: #fff; } .card { box-shadow: none; border: 0; } }
+.gtab { font-size: .84rem; margin: 6px 0; } .gtab td:first-child { white-space: nowrap; vertical-align: top; } .gtab td { vertical-align: top; }
+.exbtn { display: flex; flex-direction: column; text-align: left; width: 100%; margin-top: 6px; } .exbtn small { color: var(--muted); font-size: .8rem; }
+details summary { cursor: pointer; color: var(--teal-ink); font-size: .9rem; margin-top: 8px; } .gbox { margin: 6px 0 10px; } .vign { margin: 8px 0; } .vign p { font-size: .88rem; background: var(--soft); border-radius: 6px; padding: 8px 12px; }
+.nostitle { margin: 16px 0 4px; display: flex; gap: 10px; align-items: center; } .stars { color: #C9A227; letter-spacing: 1px; } .inst h4 { margin: 12px 0 4px; font-size: .9rem; }

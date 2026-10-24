@@ -3,7 +3,9 @@
 import { ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2, evalAssessment, amItem, amOverall, O5 } from '../js/instruments.js';
 import { kappa, robvisCSV, fromRobvisRows, newProject, newStudy, agreement, parseProject } from '../js/store.js';
 import { parseCSV } from '../js/io.js';
+import { ROBINS_E, ROB1, JBI, NOS, nosQuality } from '../js/instruments2.js';
 import { EXAMPLES } from '../js/examples.js';
+import { GUIDES } from '../js/guides.js';
 
 let fails = 0, checks = 0;
 const ok = (name, cond, extra = '') => { checks++; if (!cond) { fails++; console.log('FAIL', name, extra); } else console.log('ok  ', name); };
@@ -110,20 +112,78 @@ exhaustive('RoB 2 D5', dom(ROB2, m0, 'D5'), ['5.1', '5.2', '5.3'], [ANY, ANY, AN
   ok('kappa = sklearn (0.545454…)', Math.abs(kappa(pr, lv).kappa - 0.5454545454545454) < 1e-12); ok('kappa ponderado lineal = sklearn (0.651163…)', Math.abs(kappa(pr, lv, true).kappa - 0.6511627906976745) < 1e-12);
   ok('kappa 2×2 = 0.4', Math.abs(kappa([...Array(20).fill(['a', 'a']), ...Array(5).fill(['a', 'b']), ...Array(10).fill(['b', 'a']), ...Array(15).fill(['b', 'b'])], ['a', 'b']).kappa - 0.4) < 1e-12); }
 
-// robvis: exportar e importar conserva los juicios
-{ const p = newProject('rob2'); const ex = EXAMPLES.rob2(); p.studies = ex.studies; const csv = robvisCSV(p), rows = parseCSV(csv), back = fromRobvisRows(p, rows);
-  ok('robvis CSV: cabecera Study,D1…D5,Overall,Weight', csv.split('\n')[0] === 'Study,D1,D2,D3,D4,D5,Overall,Weight');
-  ok('robvis CSV: ida y vuelta conserva los juicios', back.studies.length === p.studies.length && back.bad.length === 0 && p.studies.every((s, i) => JSON.stringify(finalFor(p, s)) === JSON.stringify(finalFor({ ...p, twoRev: false }, back.studies[i]))));
-  function finalFor(pp, s) { const e = evalAssessment(ROB2, s.meta, s.asm.A); return [e.doms.map(d => d.j), e.overall.j]; } }
+// ROBINS-E: se enumeran las combinaciones y se comparan con los diagramas de flujo de la guía oficial (24 mar 2024), transcritos como tablas de caminos
+{ const E = (meta, id) => ROBINS_E.doms(meta).find(d => d.id === id), runE = (d, ids, vals, meta) => evalAssessment({ doms: () => [d], overall: () => ({ j: null, why: '' }), levels: [] }, meta, { ans: Object.fromEntries(ids.map((id, i) => [id, vals[i]])) }).doms[0].sug;
+  const YY = ['Y', 'PY'], NN = ['N', 'PN'], isy = v => YY.includes(v), isn = v => NN.includes(v);
+  const sweep = (name, d, ids, oracle, meta, cap = 300000) => { const sets = d.items.map(it => it.opts); let n = 0, bad = null; const rec = (k, acc) => { if (bad || n >= cap) return; if (k === sets.length) { n++; const o = oracle(acc), g = runE(d, ids, acc, meta); if (g !== o) bad = `${acc} → ${g}, diagrama = ${o}`; return; } for (const v of sets[k]) rec(k + 1, [...acc, v]); }; rec(0, []); ok(`ROBINS-E ${name}: ${n} combinaciones coinciden con el diagrama oficial`, !bad, bad); };
+  const mA = { b1: 'Y', c5: 'N' }, mB = { b1: 'Y', c5: 'Y', c6: 'N', c7: 'Y', c8: 'Y' };
+  // D1 (a): caminos del diagrama 1
+  sweep('D1 (a)', E(mA, 'D1'), ['1a.1', '1a.2', '1a.3', '1a.4'], ([q1, q2, q3, q4]) => {
+    if (['SN', 'NI'].includes(q1)) return 'high';
+    if (isy(q3)) return isy(q4) ? 'vhigh' : isy(q2) ? 'high' : 'vhigh';              // control de variables posteriores
+    if (['SN', 'NI'].includes(q2)) return 'high';
+    if (isy(q4)) return 'high';
+    return isy(q1) && isy(q2) ? 'lowc' : 'some'; }, mA);
+  // D1 (b)
+  sweep('D1 (b)', E(mB, 'D1'), ['1b.1', '1b.2', '1b.3', '1b.4', '1b.5'], ([q1, q2, q3, q4, q5]) => {
+    if (!isy(q1)) return isy(q4) ? 'vhigh' : isy(q5) ? 'vhigh' : 'high';
+    if (['SN', 'NI'].includes(q2) || ['SN', 'NI'].includes(q3) || isy(q5)) return 'high';
+    return isy(q2) && isy(q3) ? 'lowc' : 'some'; }, mB);
+  // D2: tabla 3×3 de caminos con el recuadro de error diferencial
+  const box = (q3, q4) => (q3 === 'SY' ? 'high' : isn(q3) ? (isn(q4) ? 'low' : q4 === 'SY' ? 'high' : 'some') : (q4 === 'SY' ? 'high' : 'some'));
+  sweep('D2', E(mA, 'D2'), ['2.1', '2.2', '2.3', '2.4'], ([q1, q2, q3, q4]) => {
+    const row = isy(q1) ? 0 : ['WN', 'NI'].includes(q1) ? 1 : 2, col = isn(q2) ? 0 : q2 === 'SY' ? 2 : 1, B = col ? box(q3, q4) : null;
+    const T = [[() => 'low', b => b, b => ({ low: 'some', some: 'high', high: 'vhigh' }[b])], [() => 'some', b => (b === 'low' ? 'some' : 'high'), b => (b === 'low' ? 'high' : 'vhigh')], [() => 'high', b => (b === 'low' ? 'high' : 'vhigh'), () => 'vhigh']];
+    return T[row][col](B); }, mA);
+  // D3
+  const selA = (q1, q2) => (isy(q1) ? 'low' : q1 === 'NI' ? 'some' : isn(q2) ? 'high' : 'some'), selB = (q3, q4, q5) => (isn(q3) ? 'low' : q3 === 'NI' ? 'some' : isn(q4) ? 'low' : q4 === 'NI' ? 'some' : isy(q5) ? 'high' : 'some');
+  sweep('D3', E(mA, 'D3'), ['3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '3.7'], ([q1, q2, q3, q4, q5, q6, q7]) => { const A = selA(q1, q2), B = selB(q3, q4, q5); if (A === 'low' && B === 'low') return 'low'; if (A !== 'high' && B !== 'high') return 'some'; if (isy(q6)) return 'some'; return isy(q7) ? 'some' : q7 === 'WN' ? 'high' : 'vhigh'; }, mA, 400000);
+  // D4, D6, D7
+  sweep('D4', E(mA, 'D4'), ['4.1', '4.2'], ([q1, q2]) => (isn(q1) ? 'low' : q1 === 'NI' ? 'some' : isy(q2) ? 'some' : 'high'), mA);
+  sweep('D6', E(mA, 'D6'), ['6.1', '6.2', '6.3'], ([q1, q2, q3]) => { if (isy(q1)) return 'high'; if (isn(q1)) return isn(q2) ? 'low' : isn(q3) ? 'low' : q3 === 'SY' ? 'high' : 'some'; return isn(q2) ? 'some' : q3 === 'SY' ? 'high' : 'some'; }, mA);
+  sweep('D7', E(mA, 'D7'), ['7.1', '7.2', '7.3', '7.4', '7.5'], ([q1, ...r]) => { if (isy(q1)) return 'low'; const n = r.filter(isy).length; return n > 2 ? 'vhigh' : n ? 'high' : r.includes('NI') ? 'some' : 'low'; }, mA);
+  // D5: caminos del diagrama 5 (muestreo: más de 10 millones de combinaciones)
+  sweep('D5', E(mA, 'D5'), ['5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9', '5.10'], ([a, b, c, q4, q5, q6, q7, q8, q9, q10]) => {
+    if ([a, b, c].every(isy)) return 'low'; const ev = hi => (isy(q10) ? 'some' : hi);
+    if (isy(q4) || q4 === 'NI') return isn(q5) ? (q6 === 'SY' ? 'low' : isn(q6) ? 'high' : 'some') : q5 === 'SY' ? ev('vhigh') : ev('high');
+    if (isy(q7)) return isy(q8) ? 'some' : q8 === 'SN' ? ev('vhigh') : ev('high');
+    return isy(q9) ? 'some' : q9 === 'SN' ? ev('vhigh') : ev('high'); }, mA, 250000);
+  // juicio global y detención en la sección B
+  ok('ROBINS-E global: muy alto > alto > algunas preocupaciones > bajo (salvo confusión)', ROBINS_E.overall(['lowc', 'low', 'high', 'low', 'some', 'low', 'low'], mA).j === 'high' && ROBINS_E.overall(['lowc', 'low', 'high', 'low', 'vhigh', 'low', 'low'], mA).j === 'vhigh' && ROBINS_E.overall(['lowc', 'some', 'low', 'low', 'low', 'low', 'low'], mA).j === 'some' && ROBINS_E.overall(['lowc', 'low', 'low', 'low', 'low', 'low', 'low'], mA).j === 'lowc');
+  ok('ROBINS-E: B3 = Sí o B2 = Sí detienen la evaluación (muy alto)', ROBINS_E.overall([], { ...mA, b3: 'Y' }).j === 'vhigh' && ROBINS_E.overall([], { ...mA, b1: 'N', b2: 'Y' }).j === 'vhigh' && ROBINS_E.overall(Array(7).fill(null), { ...mA, b1: 'Y', b2: 'Y' }).j === null);
+  ok('ROBINS-E: las variantes del D1 y D2 cambian con C5–C8', E({ ...mA }, 'D1').items[0].id === '1a.1' && E(mB, 'D1').items[0].id === '1b.1' && E({ b1: 'Y', c5: 'Y', c6: 'Y' }, 'D2').name.includes('variante b') && E({ b1: 'Y', c5: 'Y', c6: 'N', c7: 'Y' }, 'D2').name.includes('variante c')); }
+// NOS (umbrales AHRQ) y JBI (umbrales configurables)
+{ const q = nosQuality; ok('NOS AHRQ: buena / regular / pobre', q(4, 2, 3) === 'qgood' && q(3, 1, 2) === 'qgood' && q(2, 1, 2) === 'qfair' && q(3, 1, 1) === 'qpoor' && q(3, 0, 3) === 'qpoor' && q(1, 2, 3) === 'qpoor' && q(2, 2, 3) === 'qfair' && q(4, 2, 1) === 'qpoor');
+  const asm = (v, meta = {}) => evalAssessment(JBI, { cutInc: 70, cutExc: 50, ...meta }, { ans: Object.fromEntries([...v].map((x, i) => [`i${i + 1}`, x === 'x' ? 'na' : x])) });
+  ok('JBI: umbrales 70 % / 50 % sobre ítems aplicables y «No aplica» fuera del denominador', asm('yyyyyyyyy').overall.sug === 'inc' && asm('yyyyyyynn').overall.sug === 'inc' && asm('yyyyynnnn').overall.sug === 'seek' && asm('yyynnnnnn').overall.sug === 'exc' && asm('yyyyyyyyx').overall.sug === 'inc' && asm('yyyyyynnx').summary.applicable === 8 && asm('yyyyyynnx').overall.sug === 'inc');
+  ok('JBI: umbral configurable', asm('yyyyyynnn', { cutInc: 60 }).overall.sug === 'inc' && asm('yyyyyynnn', { cutInc: 80, cutExc: 70 }).overall.sug === 'exc');
+  const sn = evalAssessment(NOS, {}, { ans: { S1: 'a', S2: 'a', S3: 'a', S4: 'a', C1: 'a', C2: 'b', O1: 'a', O2: 'a', O3: 'a' } }); ok('NOS: estrellas por categoría (4, 1, 3) y total 8', sn.stars.S === 4 && sn.stars.C === 1 && sn.stars.O === 3 && sn.stars.total === 8);
+  const r1 = ROB1.overall; ok('RoB 1: alto > poco claro > bajo', r1(['low', 'high', 'unclear', 'low', 'low', 'low', 'low']).j === 'high' && r1(['low', 'unclear', 'low', 'low', 'low', 'low', 'low']).j === 'unclear' && r1(Array(7).fill('low')).j === 'low' && r1(['low', null, 'low', 'low', 'low', 'low', 'low']).j === null); }
 
-// ejemplos: todos completos y con los juicios esperados
-for (const [id, mk] of Object.entries(EXAMPLES)) { const ex = mk(); const inc = ex.studies.filter(s => { const e = evalAssessment(ex.inst, s.meta, s.asm.A); return ex.inst.kind === 'amstar' ? e.items.some(x => !x.j) : e.doms.some(d => !d.j) || !e.overall.j; });
-  ok(`ejemplo ${id}: ${ex.studies.length} estudios completos`, !inc.length, inc.map(s => s.name).join(', '));
-  if (ex.expect) { const bad = ex.studies.filter((s, i) => { const e = evalAssessment(ex.inst, s.meta, s.asm.A); const got = ex.inst.kind === 'amstar' ? e.overall.j : e.overall.j; return got !== ex.expect[i]; }); ok(`ejemplo ${id}: juicio global esperado`, !bad.length, bad.map(s => s.name).join(', ')); } }
+// robvis: exportar e importar conserva los juicios
+{ const p = newProject('rob2'); const ex = EXAMPLES.rob2[0].make(); p.studies = ex.studies; const csv = robvisCSV(p), rows = parseCSV(csv), back = fromRobvisRows(p, rows);
+  ok('robvis CSV: cabecera Study,D1…D5,Overall,Weight', csv.split('\n')[0] === 'Study,D1,D2,D3,D4,D5,Overall,Weight');
+  ok('robvis CSV: ida y vuelta conserva los juicios', back.studies.length === p.studies.length && back.bad.length === 0 && p.studies.every((s, i) => JSON.stringify(finalFor(s)) === JSON.stringify(finalFor(back.studies[i]))));
+  function finalFor(s) { const e = evalAssessment(ROB2, s.meta, s.asm.A); return [e.doms.map(d => d.j), e.overall.j]; }
+  const pe = newProject('robins-e'); pe.studies = EXAMPLES['robins-e'][0].make().studies; const ce = robvisCSV(pe).split('\n'); ok('robvis ROBINS-E: «Very high» se exporta y se vuelve a leer', ce.some(l => l.includes('Very high')) && fromRobvisRows(pe, parseCSV(robvisCSV(pe))).bad.length === 0); }
+
+// ejemplos: todos completos y con el juicio global esperado
+for (const [id, sets] of Object.entries(EXAMPLES)) for (const set of sets) { const ex = set.make(), I = ex.inst;
+  const inc = ex.studies.filter(s => { const e = evalAssessment(I, s.meta, s.asm.A); return e.cells ? e.items.some(x => !x.j) || !e.overall.j : e.doms.some(d => !d.j) && !(I.stop && I.stop(s.meta)) || !e.overall.j; });
+  ok(`ejemplo ${id}/${set.id}: ${ex.studies.length} estudios completos`, !inc.length, inc.map(s => s.name).join(', '));
+  const bad = ex.studies.filter((s, i) => evalAssessment(I, s.meta, s.asm.A).overall.j !== ex.expect[i]); ok(`ejemplo ${id}/${set.id}: juicio global esperado`, !bad.length, bad.map(s => `${s.name}: ${evalAssessment(I, s.meta, s.asm.A).overall.j}`).join('; '));
+  if (!I.kind) { const badD = []; ex.studies.forEach(s => evalAssessment(I, s.meta, s.asm.A).doms.forEach(d => { if (d.sel && d.sel !== d.sug && I.hasAlgo) badD.push(s.name + d.id); })); ok(`ejemplo ${id}/${set.id}: los juicios fijados coinciden con el algoritmo`, !badD.length, badD.join(',')); } }
+
+// la guía cubre todos los dominios y niveles de cada instrumento
+{ const cov = (I, key) => { const g = GUIDES[key]; if (Array.isArray(g)) return g.length === I.items.length; if (I.kind === 'nos') return I.items.every(it => Object.keys(g[it.id] || {}).length >= it.opts.length); return I.doms(Object.fromEntries(I.meta.filter(m => m.def != null).map(m => [m.id, m.def]))).every(d => (d.levels || I.levels).every(l => g[d.id]?.[l] || (l === 'low' && g[d.id]?.lowc)) || d.levels?.every(l => g[d.id]?.[l])); };
+  for (const [id, key] of [['rob2', 'rob2'], ['robins-i', 'robins-i'], ['quadas2', 'quadas2'], ['probast', 'probast'], ['robins-e', 'robins-e'], ['rob1', 'rob1'], ['jbi-prev', 'jbi'], ['nos-cohort', 'nos'], ['amstar2', 'amstar2']]) ok(`guía de «${id}» cubre todos los dominios/ítems y niveles`, cov(INSTRUMENTS_BY_ID(id), key)); }
+function INSTRUMENTS_BY_ID(id) { return EXAMPLES[id][0].make().inst; }
+
 // concordancia con dos revisores simulados
-{ const p = newProject('rob2'); p.twoRev = true; const ex = EXAMPLES.rob2(); p.studies = ex.studies; p.studies.forEach(s => (s.asm.B = JSON.parse(JSON.stringify(s.asm.A)))); const ag = agreement(p); ok('concordancia idéntica → kappa 1', ag.every(r => r.n === 0 || Math.abs(r.kappa - 1) < 1e-12 || isNaN(r.kappa))); }
+{ const p = newProject('rob2'); p.twoRev = true; p.studies = EXAMPLES.rob2[0].make().studies; p.studies.forEach(s => (s.asm.B = JSON.parse(JSON.stringify(s.asm.A)))); const ag = agreement(p); ok('concordancia idéntica → kappa 1', ag.every(r => r.n === 0 || Math.abs(r.kappa - 1) < 1e-12 || isNaN(r.kappa)));
+  const pn = newProject('nos-cohort'); pn.twoRev = true; pn.studies = EXAMPLES['nos-cohort'][0].make().studies; pn.studies.forEach(s => (s.asm.B = JSON.parse(JSON.stringify(s.asm.A)))); ok('concordancia con NOS y JBI no falla', agreement(pn).length === 4 && agreement({ ...pn, inst: 'jbi-prev', studies: EXAMPLES['jbi-prev'][0].make().studies.map(s => ({ ...s, asm: { A: s.asm.A, B: s.asm.A, C: {} } })) }).length === 10); }
 // serialización
-{ const p = newProject('quadas2'); p.studies = EXAMPLES.quadas2().studies; const q = parseProject(JSON.stringify(p)); ok('proyecto JSON: ida y vuelta', q.studies.length === p.studies.length && q.inst === 'quadas2'); }
+{ const p = newProject('quadas2'); p.studies = EXAMPLES.quadas2[0].make().studies; const q = parseProject(JSON.stringify(p)); ok('proyecto JSON: ida y vuelta', q.studies.length === p.studies.length && q.inst === 'quadas2'); }
 
 console.log(fails ? `${fails} de ${checks} comprobaciones fallaron` : `${checks}/${checks} comprobaciones correctas`);
 process.exit(fails ? 1 : 0);

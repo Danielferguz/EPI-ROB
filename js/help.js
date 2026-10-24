@@ -10,13 +10,19 @@ export const HELP_HTML = `
 <h2>Ayuda</h2>
 <h3>Instrumentos incluidos</h3>
 <ul>
-<li><b>RoB 2</b> (ensayos aleatorizados de grupos paralelos): cinco dominios, algoritmos de la guía oficial de 2019 para el efecto de la asignación y para el efecto de adherirse. Se evalúa un resultado numérico concreto.</li>
-<li><b>ROBINS-I</b> (no aleatorizados, versión 1 de 2016): siete dominios con preguntas señalizadoras y juicio del evaluador (bajo, moderado, serio, crítico, sin información); el global sigue la regla del instrumento.</li>
-<li><b>QUADAS-2</b> (exactitud diagnóstica): cuatro dominios, aplicabilidad en los tres primeros; todo «Sí» → bajo, algún «No» → alto, resto → no claro.</li>
-<li><b>PROBAST</b> (modelos de predicción): cuatro dominios y 20 preguntas; las preguntas 4.2, 4.5, 4.8 y 4.9 solo aplican al desarrollo; advertencia de PROBAST para desarrollos sin validación externa.</li>
-<li><b>AMSTAR 2</b> (revisiones sistemáticas): 16 ítems con casillas de criterios para «Sí parcial / Sí»; siete ítems críticos; la confianza global (alta, moderada, baja, críticamente baja) sale del número de fallos críticos y debilidades no críticas.</li>
+<li><b>RoB 2</b> (ensayos aleatorizados): cinco dominios, algoritmos de la guía oficial de 2019 para el efecto de la asignación y el de adherirse.</li>
+<li><b>RoB 1</b> (herramienta Cochrane de 2011): siete dominios con juicio bajo, alto o poco claro y criterios con ejemplos.</li>
+<li><b>ROBINS-I</b> (no aleatorizados, v1): siete dominios con preguntas señalizadoras y juicio del evaluador (bajo, moderado, serio, crítico, sin información).</li>
+<li><b>ROBINS-E</b> (exposiciones; versión de 24 de marzo de 2024): sección preliminar B (puede detener la evaluación), variantes de los dominios 1 y 2 según C5–C8, escala de cuatro niveles y los algoritmos de los diagramas de flujo oficiales.</li>
+<li><b>QUADAS-2</b> (exactitud diagnóstica): cuatro dominios y aplicabilidad.</li>
+<li><b>PROBAST</b> (modelos de predicción): cuatro dominios y 20 preguntas; 4.2, 4.5, 4.8 y 4.9 solo en desarrollo.</li>
+<li><b>AMSTAR 2</b> (revisiones sistemáticas): 16 ítems con criterios para «Sí parcial / Sí»; siete críticos.</li>
+<li><b>JBI · estudios de prevalencia</b>: 9 ítems (sí, no, poco claro, no aplica) con decisión de incluir, buscar más información o excluir según umbrales configurables; el JBI no fija puntos de corte.</li>
+<li><b>Newcastle-Ottawa (cohortes)</b>: estrellas por selección, comparabilidad y desenlace, y calidad buena, regular o pobre con los umbrales AHRQ.</li>
 </ul>
-<p>No incluidos: ROBINS-E y RoB 2 para ensayos por conglomerados o cruzados. Si los necesita, use las plantillas oficiales en <a href="https://www.riskofbias.info">riskofbias.info</a> y cargue los juicios con «Importar juicios (CSV)».</p>
+<p>No incluidos: RoB 2 para ensayos por conglomerados o cruzados, la versión de casos y controles de NOS y ROBINS-I v2. Si los necesita, use las plantillas oficiales en <a href="https://www.riskofbias.info">riskofbias.info</a> y cargue los juicios con «Importar juicios (CSV)».</p>
+<h3>Guía de cada juicio y ejemplos</h3>
+<p>En cada dominio (o ítem) encontrará «¿Cuándo corresponde cada juicio? Casos de ejemplo»: una tabla que dice qué situaciones justifican cada opción, con un caso breve. En el paso 1, cada instrumento ofrece <b>varios ejemplos con estudios ficticios</b>; el sustento de cada dominio ya viene escrito para que compare su razonamiento.</p>
 <h3>Respuestas y juicios</h3>
 <ul><li><b>Probablemente sí / no</b> tienen las mismas consecuencias que Sí / No; indican que usted infiere con información indirecta. <b>Sin información</b> solo cuando el informe no permite juzgar.</li><li>Las preguntas que dejan de ser necesarias se ocultan según sus respuestas anteriores.</li><li>El juicio manual reemplaza al propuesto y se marca como «modificado».</li></ul>
 <h3>Dos revisores y consenso</h3>
@@ -26,7 +32,7 @@ export const HELP_HTML = `
 <h3>Importar y exportar</h3>
 <ul><li><b>CSV compatible con robvis</b>: columnas <code>Study, D1…Dk, Overall, Weight</code> con <code>Low, Some concerns, High</code> (RoB 2), <code>Low, Moderate, Serious, Critical, No information</code> (ROBINS-I) o <code>Low, High, Unclear</code> (QUADAS-2, PROBAST). También se leen etiquetas en español.</li><li><b>Tabla en color (Excel)</b> con juicios y sustentos.</li></ul>
 <h3>Validación</h3>
-<p><code>node tests/validate.mjs</code> enumera todas las combinaciones de respuestas de cada dominio de RoB 2 y las compara con las tablas 1, 4, 6, 8, 10, 12 y 14 de la guía oficial; comprueba reglas de QUADAS-2, PROBAST y AMSTAR 2, el kappa frente a <i>scikit-learn</i> y la ida y vuelta de los formatos.</p>
+<p><code>node tests/validate.mjs</code> enumera todas las combinaciones de respuestas de cada dominio de RoB 2 y las compara con las tablas 1, 4, 6, 8, 10, 12 y 14 de la guía oficial; hace lo mismo con los siete dominios de ROBINS-E frente a los diagramas de flujo oficiales; comprueba reglas de QUADAS-2, PROBAST, AMSTAR 2, JBI, NOS y RoB 1, el kappa frente a <i>scikit-learn</i> y la ida y vuelta de los formatos.</p>
 <h3>Referencias</h3>
 <ul>
 <li>Sterne JAC et al. RoB 2. <i>BMJ</i> 2019;366:l4898. Higgins JPT et al. (eds). RoB 2 guidance for parallel trials, 2019.</li>
