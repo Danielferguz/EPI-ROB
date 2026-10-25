@@ -1,5 +1,5 @@
 // Proyecto de evaluación: estudios, valoraciones de uno o dos revisores y consenso; persistencia, concordancia y formatos de intercambio.
-import { instOf, defMeta, evalAssessment, finalOf, LV } from './instruments.js?v=2026.10.25-4';
+import { instOf, defMeta, evalAssessment, finalOf, LV } from './instruments.js?v=2026.10.25-5';
 
 const KEY = 'epi-rob-v1';
 export const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
