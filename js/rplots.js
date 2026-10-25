@@ -1,8 +1,8 @@
 // Figuras de riesgo de sesgo en SVG: semáforo (estudios × dominios) y barras de resumen (proporción por dominio, opcionalmente ponderada).
 // Dos estilos: «robvis» (círculos sin cuadrícula) y «revman» (cuadrícula negra con círculos + / ? / −, como las figuras de RevMan).
 // El tamaño de letra fs (unidades de la figura) escala textos y espaciados; el ancho final lo fija figs.js (ver data-fs).
-import { LV } from './instruments.js?v=2026.10.25-6';
-import { LVEN } from './en.js?v=2026.10.25-6';
+import { LV } from './instruments.js?v=2026.10.25-7';
+import { LVEN } from './en.js?v=2026.10.25-7';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const style = fs => `<style>text{font:${fs}px system-ui,sans-serif;fill:currentColor}.h{font-weight:600}.m{fill:var(--muted,#666)}.s{font-size:${+(fs * 0.92).toFixed(2)}px}</style>`;
 const dark = new Set(['some', 'moderate', 'unclear', 'ni', 'py', 'na', 'cmod', 'conc_unclear', 'seek', 'qfair']);
@@ -28,31 +28,38 @@ function headText(c, x, y, mode, k, cls = '') {
 
 // ------------------------------------------------------------------ estilo RevMan (como en las revisiones Cochrane): cuadrícula negra, círculos con borde, leyenda a la derecha
 const CW = 6.0; // ancho medio de un carácter (unidades de k = fs/12)
-function trafficRM(rows, cols, { title = '', legend = [], legendOverall = null, overall = true, fs = 12, heads = false } = {}) {
-  const mode = headMode(heads), long = mode === 'vertical' || mode === 'oblique', k = fs / 12, cell = Math.round(fs * 2.1), nc = cols.length + (overall ? 1 : 0), gap = overall ? cell * 0.35 : 0, sw = +(1.1 * k).toFixed(2);
-  const lw = Math.max(...rows.map(r => String(r.name).length), 6) * 7.0 * k, x0 = 8 * k + lw + 12 * k, gridW = nc * cell + gap, hasKey = !long && cols.every(c => dom(c.id) && c.name), hs = headSpace(cols, mode, k);
-  const levels = [...new Set([...(legend || []), ...(legendOverall || [])])].reverse(), keys = hasKey ? cols.map(c => `${c.short ?? c.id}: ${c.name}`) : [];
-  const legX = x0 + gridW + 2.2 * fs, legW = Math.max(...levels.map(l => (look(l, 'revman').t.length + 4) * CW * k), ...keys.map(t => t.length * CW * k), 70 * k), W = Math.max(legX + legW + 10 * k, x0 + cols.length * cell + hs.over + 10 * k);
-  const top = (title ? 24 : 8) * k + (long ? Math.max(hs.h, overall ? 16 * k : 0) : mode === 'short' || overall ? 16 * k : 4 * k), legH = (levels.length + 1) * 1.8 * fs + (keys.length ? 10 * k + keys.length * lh14(k) : 0), H = Math.max(top + rows.length * cell + 10 * k, top + legH + 6 * k);
+function trafficRM(rows, cols, { title = '', legend = [], legendOverall = null, overall = true, fs = 12, heads = false, overallText = 'Overall', overallSep = false, grid = true } = {}) {
+  const mode = headMode(heads), long = mode === 'vertical' || mode === 'oblique', k = fs / 12, cell = Math.round(fs * 2.1), nc = cols.length + (overall ? 1 : 0), gap = overall && overallSep ? cell * 0.35 : 0, sw = +(1.1 * k).toFixed(2), ow = overall && !long ? Math.max(cell, textW(overallText, k, true) + 8 * k) : cell;
+  const hcols = [...cols, ...(overall ? [{ name: overallText }] : [])], hs = headSpace(hcols, mode, k);
+  const lw = Math.max(...rows.map(r => String(r.name).length), 6) * 7.0 * k, x0 = 8 * k + lw + 12 * k, gridW = cols.length * cell + (overall ? ow : 0) + gap, hasKey = mode === 'short' && cols.every(c => dom(c.id) && c.name);
+  const levels = [...new Set([...(legend || []), ...(legendOverall || [])])].reverse(), keys = hasKey ? cols.map(c => `${c.short ?? c.id}: ${c.name}`) : [], keyW = keys.length ? Math.max(...keys.map(t => t.length)) * CW * k : 0;
+  // leyenda de niveles en una fila centrada bajo la figura; la clave «D1: nombre» (solo con encabezados D1…Dn) va a la derecha de la rejilla
+  const legItems = levels.map(l => { const d = look(l, 'revman'); return { d, t: d.t.replace(/ risk of bias$/i, '').replace(/^Low risk.*/, 'Low') }; }), rr = cell * 0.36, itemW = it => 2 * rr + 8 * k + it.t.length * 6.4 * k + 22 * k;
+  const legTotal = textW('Judgement', k, true) + 8 * k + legItems.reduce((a, it) => a + itemW(it), 0);
+  const W = Math.max(x0 + gridW + (keys.length ? 2 * fs + keyW + 10 * k : 10 * k), x0 + cols.length * cell + hs.over + 10 * k, legTotal + 16 * k);
+  const top = (title ? 24 : 8) * k + (long ? Math.max(hs.h, 16 * k) : mode === 'short' || overall ? 16 * k : 4 * k), gridB = top + rows.length * cell, H = Math.max(gridB, top + keys.length * lh14(k)) + (legItems.length ? 14 * k + 2 * rr + 8 * k : 6 * k);
   let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${+W.toFixed(1)} ${+H.toFixed(1)}" data-fs="${fs}" class="plot" role="img" aria-label="${esc(title || 'Risk of bias traffic-light plot')}" style="max-width:${Math.round(W * 1.15)}px">${style(fs)}`;
   if (title) s += `<text x="8" y="${17 * k}" class="h">${esc(title)}</text>`;
-  const cx = c => x0 + c * cell + cell / 2 + (overall && c === cols.length ? gap : 0);
-  if (long) cols.forEach((c, i) => { s += headText(c, cx(i), top - 6 * k, mode, k); });
-  [...cols.map((c, i) => (mode === 'short' ? (c.short ?? c.id) : '')), ...(overall ? ['Overall'] : [])].forEach((h, i) => { if (h) s += `<text x="${cx(i)}" y="${top - 6 * k}" text-anchor="middle" class="${i === cols.length ? 'h' : ''}">${esc(h)}</text>`; });
+  const cx = c => (overall && c === cols.length ? x0 + c * cell + gap + ow / 2 : x0 + c * cell + cell / 2);
+  if (long) hcols.forEach((c, i) => { s += headText(c, cx(i), top - 6 * k, mode, k, i === cols.length && overall ? 'h' : ''); });
+  else [...cols.map(c => (mode === 'short' ? (c.short ?? c.id) : '')), ...(overall ? [overallText] : [])].forEach((h, i) => { if (h) s += `<text x="${cx(i)}" y="${top - 6 * k}" text-anchor="middle" class="${i === cols.length ? 'h' : ''}">${esc(h)}</text>`; });
   rows.forEach((r, i) => {
     const yc = top + i * cell + cell / 2; s += `<text x="${x0 - 7 * k}" y="${yc + 4 * k}" text-anchor="end" style="font-variant:small-caps">${esc(r.name)}</text>`;
     [...r.js, ...(overall ? [r.overall] : [])].forEach((c, q) => {
       const j = c && typeof c === 'object' ? c.j : c, d = look(j, 'revman'), X = cx(q), lab = c && typeof c === 'object' && c.t ? c.t : d?.s;
-      s += `<rect x="${X - cell / 2}" y="${top + i * cell}" width="${cell}" height="${cell}" fill="#FFFFFF" stroke="#000000" stroke-width="${sw}"/>`;
+      if (grid) s += `<rect x="${X - (overall && q === cols.length ? ow : cell) / 2}" y="${top + i * cell}" width="${overall && q === cols.length ? ow : cell}" height="${cell}" fill="#FFFFFF" stroke="#000000" stroke-width="${sw}"/>`;
       if (d) s += `<circle cx="${X}" cy="${yc}" r="${cell * 0.36}" fill="${d.c}" stroke="#000000" stroke-width="${sw}"><title>${esc(r.name)}: ${esc(d.t)}</title></circle><text x="${X}" y="${yc + cell * 0.18}" text-anchor="middle" style="font-weight:700;fill:#000;font-size:${+(cell * 0.52).toFixed(1)}px">${esc(lab)}</text>`;
     });
   });
-  let y = top + 4 * k; s += `<text x="${legX}" y="${y + 4 * k}" class="h">Judgement</text>`; y += 1.8 * fs;
-  levels.forEach(l => { const d = look(l, 'revman'), rr = cell * 0.36; s += `<circle cx="${legX + rr}" cy="${y}" r="${rr}" fill="${d.c}" stroke="#000" stroke-width="${sw}"/><text x="${legX + rr}" y="${y + cell * 0.18}" text-anchor="middle" style="font-weight:700;fill:#000;font-size:${+(cell * 0.52).toFixed(1)}px">${esc(d.s)}</text><text x="${legX + 2 * rr + 8 * k}" y="${y + 4 * k}">${esc(d.t.replace(/ risk of bias$/i, '').replace(/^Low risk.*/, 'Low'))}</text>`; y += 1.8 * fs; });
-  y += 6 * k; keys.forEach((t, i) => { s += `<text x="${legX}" y="${y + i * lh14(k)}">${esc(t)}</text>`; });
+  keys.forEach((t, i) => { s += `<text x="${x0 + gridW + 2 * fs}" y="${top + 12 * k + i * lh14(k)}">${esc(t)}</text>`; });
+  let lx = (W - legTotal) / 2; const ly = gridB + 14 * k + rr;
+  if (legItems.length) { s += `<text x="${lx}" y="${ly + 4 * k}" class="h">Judgement</text>`; lx += textW('Judgement', k, true) + 8 * k; }
+  legItems.forEach(it => { s += `<circle cx="${lx + rr}" cy="${ly}" r="${rr}" fill="${it.d.c}" stroke="#000" stroke-width="${sw}"/><text x="${lx + rr}" y="${ly + cell * 0.18}" text-anchor="middle" style="font-weight:700;fill:#000;font-size:${+(cell * 0.52).toFixed(1)}px">${esc(it.d.s)}</text><text x="${lx + 2 * rr + 8 * k}" y="${ly + 4 * k}">${esc(it.t)}</text>`; lx += itemW(it); });
   return s + '</svg>';
 }
+const textW = (t, k, bold = false) => String(t).length * (bold ? 7.6 : 6.6) * k;
 const lh14 = k => 15 * k;
+const PCT_WHITE = new Set(['low', 'lowc', 'high', 'critical', 'vhigh']); // texto del porcentaje: blanco sobre verde y rojo, negro sobre amarillo y naranja
 function summaryRM(cols, counts, levels, { title = '', weighted = false, fs = 12, xlab = '' } = {}) {
   const k = fs / 12, rh = 22 * k, bh = 15 * k, lw = Math.max(...cols.map(c => String(c.name).length), 8) * CW * k, x0 = 10 * k + lw + 10 * k, bw = 330 * k, W = x0 + bw + 24 * k, top = (title ? 26 : 10) * k, axY = top + cols.length * rh + 4 * k;
   const legItems = levels.map(l => look(l, 'revman')), legW = legItems.map(d => d.t.length * 6.6 * k + 46 * k), legRows = []; { let cur = [], w = 0; legItems.forEach((d, i) => { if (w + legW[i] > W - 16 * k && cur.length) { legRows.push(cur); cur = []; w = 0; } cur.push(i); w += legW[i]; }); if (cur.length) legRows.push(cur); }
@@ -62,12 +69,12 @@ function summaryRM(cols, counts, levels, { title = '', weighted = false, fs = 12
   cols.forEach((c, i) => {
     const y = top + i * rh, cn = counts[c.id] || {}, tot = levels.reduce((a, l) => a + (cn[l] || 0), 0) || 1; let x = x0;
     s += `<text x="${x0 - 8 * k}" y="${y + bh / 2 + 5 * k}" text-anchor="end">${esc(c.name)}</text>`;
-    levels.forEach(l => { const w = (cn[l] || 0) / tot * bw; if (w <= 0) return; const d = look(l, 'revman'); const pc = Math.round((cn[l] || 0) / tot * 100); s += `<rect x="${x}" y="${y}" width="${w}" height="${bh}" fill="${d.c}" stroke="#000" stroke-width="${sw}"><title>${esc(c.name)}: ${esc(d.t)} ${pc} %</title></rect>`; if (w > 24 * k) s += `<text x="${x + w / 2}" y="${y + bh / 2 + 4.5 * k}" text-anchor="middle" style="fill:#000;font-weight:600">${pc}%</text>`; x += w; });
+    levels.forEach(l => { const w = (cn[l] || 0) / tot * bw; if (w <= 0) return; const d = look(l, 'revman'); const pc = Math.round((cn[l] || 0) / tot * 100); s += `<rect x="${x}" y="${y}" width="${w}" height="${bh}" fill="${d.c}" stroke="#000" stroke-width="${sw}"><title>${esc(c.name)}: ${esc(d.t)} ${pc} %</title></rect>`; if (w > 24 * k) s += `<text x="${x + w / 2}" y="${y + bh / 2 + 4.5 * k}" text-anchor="middle" style="fill:${PCT_WHITE.has(l) ? '#FFFFFF' : '#000000'};font-weight:600">${pc}%</text>`; x += w; });
   });
   s += `<line x1="${x0}" x2="${x0 + bw}" y1="${axY}" y2="${axY}" stroke="#000" stroke-width="${sw}"/>`;
   [0, 25, 50, 75, 100].forEach(v => { const x = x0 + v / 100 * bw; s += `<line x1="${x}" x2="${x}" y1="${axY}" y2="${axY + 4 * k}" stroke="#000" stroke-width="${sw}"/><text x="${x}" y="${axY + 17 * k}" text-anchor="middle">${v}</text>`; });
   s += `<text x="${x0 + bw / 2}" y="${axY + 33 * k}" text-anchor="middle">${esc(xlab || (weighted ? 'Weighted risk of bias %' : 'Risk of bias %'))}</text>`;
-  legRows.forEach((r, q) => { let x = 12 * k; r.forEach(i => { const d = legItems[i]; s += `<rect x="${x}" y="${axY + 46 * k + q * 20 * k}" width="${14 * k}" height="${12 * k}" fill="${d.c}" stroke="#000" stroke-width="${sw}"/><text x="${x + 20 * k}" y="${axY + 56 * k + q * 20 * k}">${esc(d.t)}</text>`; x += legW[i]; }); });
+  legRows.forEach((r, q) => { let x = (W - r.reduce((a, i) => a + legW[i], 0) + 20 * k) / 2; r.forEach(i => { const d = legItems[i]; s += `<rect x="${x}" y="${axY + 46 * k + q * 20 * k}" width="${14 * k}" height="${12 * k}" fill="${d.c}" stroke="#000" stroke-width="${sw}"/><text x="${x + 20 * k}" y="${axY + 56 * k + q * 20 * k}">${esc(d.t)}</text>`; x += legW[i]; }); });
   return s + '</svg>';
 }
 
@@ -84,24 +91,24 @@ function legendRow(levels, x0, y, W, fs, st) {
 }
 
 // rows: [{name, js:[nivel…], overall}], cols: [{id, short, name?, crit?}]; legend: niveles de las celdas; legendOverall: niveles distintos para la columna global
-export function trafficLight(rows, cols, { title = '', legend = [], legendOverall = null, overall = true, cell = 30, maxName = 34, fs = 12, st = 'robvis', heads: showHeads = false } = {}) {
-  if (st === 'revman') return trafficRM(rows, cols, { title, legend, legendOverall, overall, fs, heads: showHeads });
-  const mode = headMode(showHeads), long = mode === 'vertical' || mode === 'oblique', k = fs / 12, rm = st === 'revman', lh = 14 * k, hs = headSpace(cols, mode, k);
+export function trafficLight(rows, cols, { title = '', legend = [], legendOverall = null, overall = true, cell = 30, maxName = 34, fs = 12, st = 'robvis', heads: showHeads = false, overallText = 'Overall', overallSep = false, grid = true } = {}) {
+  if (st === 'revman') return trafficRM(rows, cols, { title, legend, legendOverall, overall, fs, heads: showHeads, overallText, overallSep, grid });
+  const mode = headMode(showHeads), long = mode === 'vertical' || mode === 'oblique', k = fs / 12, rm = st === 'revman', lh = 14 * k, hs = headSpace([...cols, ...(overall ? [{ name: overallText }] : [])], mode, k);
   const names = rows.map(r => wrap(r.name, maxName)), lw = Math.min(280 * k, 6.4 * k * Math.max(...names.map(n => Math.max(...n.map(l => l.length))), 8));
   const cw = rm ? Math.max(Math.round(fs * 2.7), Math.round(fs * 4.4)) : cell * k, ch = rm ? Math.round(fs * 2.7) : cell * k;
-  const rowH = Math.max(ch, ...names.map(n => lh * n.length + 6 * k)), nc = cols.length + (overall ? 1 : 0), gap = overall ? 12 * k : 0;
-  const x0 = rm ? 8 + lw + 14 * k : lw + 14 * k, top = (long ? Math.max(hs.h + 12 * k, 36 * k) : (rm ? 30 : 36) * k) + (title ? 18 * k : 0);
-  const heads = [...cols.map((c, i) => (rm && cols.every(q => dom(q.id)) ? letter(i) : (c.short ?? c.id))), ...(overall ? ['Overall'] : [])];
+  const rowH = Math.max(ch, ...names.map(n => lh * n.length + 6 * k)), nc = cols.length + (overall ? 1 : 0), gap = overall && overallSep ? 12 * k : 0;
+  const ow = overall && !long ? Math.max(cw, textW(overallText, k, true) + 8 * k) : cw, x0 = rm ? 8 + lw + 14 * k : lw + 14 * k, top = (long ? Math.max(hs.h + 12 * k, 36 * k) : (rm ? 30 : 36) * k) + (title ? 18 * k : 0);
+  const heads = [...cols.map((c, i) => (rm && cols.every(q => dom(q.id)) ? letter(i) : (c.short ?? c.id))), ...(overall ? [overallText] : [])];
   // leyenda de dominios: RevMan «(A) nombre»; robvis «D1: nombre»
-  const hasKey = !long && cols.every(c => dom(c.id) && c.name), Wn = x0 + nc * cw + gap + 20 * k + hs.over, W = Math.max(Wn, 300 * k, hasKey || rm ? 420 * k : 0);
-  const keyLines = hasKey ? cols.flatMap((c, i) => wrap(`${rm ? `(${letter(i)})` : `${c.short ?? c.id}:`} ${c.name}`, Math.floor((W - 16 * k) / (5.8 * k)))) : [];
+  const hasKey = mode === 'short' && cols.every(c => dom(c.id) && c.name), keyLines = hasKey ? cols.flatMap((c, i) => wrap(`${rm ? `(${letter(i)})` : `${c.short ?? c.id}:`} ${c.name}`, 42)) : [], keyW = keyLines.length ? 250 * k : 0;
+  const Wn = x0 + cols.length * cw + (overall ? ow : 0) + gap + 20 * k + hs.over + keyW, W = Math.max(Wn, 300 * k);
   const nl = L => (L ? (legendRow(L, 8, 0, W, fs, st).y / (20 * k)) + 1 : 0);
-  const keyH = keyLines.length ? keyLines.length * lh + 14 * k : 0;
-  const H = top + rows.length * rowH + 16 * k + keyH + 22 * k * (nl(legend) + nl(legendOverall)) + (rm ? 6 * k : 0);
+  const gridB = Math.max(top + rows.length * rowH, top + 12 * k + keyLines.length * lh);
+  const H = gridB + 16 * k + 22 * k * (nl(legend) + nl(legendOverall)) + (rm ? 6 * k : 0);
   let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${+W.toFixed(1)} ${+H.toFixed(1)}" data-fs="${fs}" class="plot" role="img" aria-label="${esc(title || 'Traffic-light plot of risk of bias')}" style="max-width:${Math.round(W * 1.15)}px">${style(fs)}`;
   if (title) s += `<text x="8" y="${18 * k}" class="h">${esc(title)}</text>`;
-  const cx = i => x0 + i * cw + cw / 2 + (overall && i === cols.length ? gap : 0);
-  heads.forEach((h, i) => { if (long && i < cols.length) s += headText(cols[i], cx(i), top - 10 * k, mode, k, cols[i].crit ? 'h' : ''); else if (mode !== 'off' || i === cols.length) s += `<text x="${cx(i)}" y="${top - 10 * k}" text-anchor="middle" class="${i === cols.length && overall ? 'h' : cols[i]?.crit ? 'h' : ''}">${esc(h)}</text>`; });
+  const cx = i => (overall && i === cols.length ? x0 + i * cw + gap + ow / 2 : x0 + i * cw + cw / 2);
+  heads.forEach((h, i) => { if (long) s += headText(i < cols.length ? cols[i] : { name: overallText }, cx(i), top - 10 * k, mode, k, i < cols.length ? (cols[i].crit ? 'h' : '') : 'h'); else if (mode !== 'off' || i === cols.length) s += `<text x="${cx(i)}" y="${top - 10 * k}" text-anchor="middle" class="${i === cols.length && overall ? 'h' : cols[i]?.crit ? 'h' : ''}">${esc(h)}</text>`; });
   rows.forEach((r, i) => {
     const yc = top + i * rowH + rowH / 2, vals = [...r.js, ...(overall ? [r.overall] : [])];
     names[i].forEach((l, q) => { const yy = yc + 4 * k + (q - (names[i].length - 1) / 2) * lh; s += rm ? `<text x="8" y="${yy}">${esc(l)}</text>` : `<text x="${lw + 4}" y="${yy}" text-anchor="end">${esc(l)}</text>`; });
@@ -111,9 +118,9 @@ export function trafficLight(rows, cols, { title = '', legend = [], legendOveral
     });
   });
   if (rm) s += `<line x1="8" x2="${W - 8}" y1="${top - 4 * k}" y2="${top - 4 * k}" stroke="#000000" stroke-width="${+(1.2 * k).toFixed(2)}"/>`;
-  if (overall && !rm) s += `<line x1="${x0 + cols.length * cw + gap / 2}" x2="${x0 + cols.length * cw + gap / 2}" y1="${top - 4 * k}" y2="${top + rows.length * rowH}" stroke="#B5BCBE"/>`;
-  let yl = top + rows.length * rowH + 22 * k;
-  if (keyLines.length) { keyLines.forEach((t, q) => { s += `<text x="8" y="${yl + q * lh - 4 * k}" class="s">${esc(t)}</text>`; }); yl += keyLines.length * lh + 6 * k; }
+  if (overall && overallSep && !rm) s += `<line x1="${x0 + cols.length * cw + gap / 2}" x2="${x0 + cols.length * cw + gap / 2}" y1="${top - 4 * k}" y2="${top + rows.length * rowH}" stroke="#B5BCBE"/>`;
+  let yl = gridB + 22 * k;
+  keyLines.forEach((t, q) => { s += `<text x="${x0 + cols.length * cw + (overall ? ow : 0) + gap + 20 * k}" y="${top + 12 * k + q * lh}" class="s">${esc(t)}</text>`; });
   const a = legendRow(legend, 8, yl, W, fs, st); s += a.s;
   if (legendOverall) s += legendRow(legendOverall, 8, a.y + 22 * k, W, fs, st).s;
   return s + '</svg>';

@@ -1,13 +1,13 @@
 // EPI-ROB · interfaz: guía, proyecto, evaluación guiada, concordancia y consenso, figuras y exportación.
-import { INSTRUMENTS, instOf, LV, ANS, defMeta, visibleItems } from './instruments.js?v=2026.10.25-6';
-import { GUIDES } from './guides.js?v=2026.10.25-6';
-import { newProject, newStudy, hasData, finalKey, evalStudy, finalStudy, load, save, parseProject, agreement, kappaLabel, robvisCSV, fromRobvisRows } from './store.js?v=2026.10.25-6';
-import { EXAMPLES } from './examples.js?v=2026.10.25-6';
-import { trafficLight, summaryBar } from './rplots.js?v=2026.10.25-6';
-import { LVEN, domEN, colEN, UNIT, EX_TITLE } from './en.js?v=2026.10.25-6';
-import { figWrap, bindFigs, figSettings } from './figs.js?v=2026.10.25-6';
-import { readFile, download } from './io.js?v=2026.10.25-6';
-import { HELP_HTML, GUIDE_HTML } from './help.js?v=2026.10.25-6';
+import { INSTRUMENTS, instOf, LV, ANS, defMeta, visibleItems } from './instruments.js?v=2026.10.25-7';
+import { GUIDES } from './guides.js?v=2026.10.25-7';
+import { newProject, newStudy, hasData, finalKey, evalStudy, finalStudy, load, save, parseProject, agreement, kappaLabel, robvisCSV, fromRobvisRows } from './store.js?v=2026.10.25-7';
+import { EXAMPLES } from './examples.js?v=2026.10.25-7';
+import { trafficLight, summaryBar } from './rplots.js?v=2026.10.25-7';
+import { LVEN, domEN, colEN, UNIT, EX_TITLE } from './en.js?v=2026.10.25-7';
+import { figWrap, bindFigs, figSettings } from './figs.js?v=2026.10.25-7';
+import { readFile, download } from './io.js?v=2026.10.25-7';
+import { HELP_HTML, GUIDE_HTML } from './help.js?v=2026.10.25-7';
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -33,7 +33,7 @@ document.addEventListener('click', e => { const g = e.target.closest('[data-go]'
 $('#help').innerHTML = HELP_HTML;
 const figNote = () => { const st = figSettings(), svg = document.querySelector('#res-out svg.plot'), w = svg ? +svg.getAttribute('viewBox').split(/\s+/)[2] : 0, fs = svg ? +svg.dataset.fs : st.fs;
   $('#fig-note').textContent = w ? (st.auto ? `Letra final ${st.pt} pt; el semáforo medirá ≈ ${Math.round(st.pt * 0.3528 * w / fs)} mm de ancho.` : `Con ${st.mm} mm de ancho, la letra del semáforo mide ≈ ${(fs * st.mm / w / 0.3528).toFixed(1)} pt${fs * st.mm / w / 0.3528 > 12 ? ' (grande: reduzca el tamaño de letra o use un ancho mayor)' : ''}.`) : ''; };
-['#fig-style', '#fig-fs', '#fig-heads'].forEach(id => $(id).addEventListener('change', () => { if (P?.studies?.length) renderResults(); figNote(); }));
+['#fig-style', '#fig-fs', '#fig-heads', '#fig-overall', '#fig-overall-text', '#fig-osep', '#fig-grid'].forEach(id => $(id).addEventListener(id === '#fig-overall-text' ? 'input' : 'change', () => { if (P?.studies?.length) renderResults(); figNote(); }));
 ['#fig-pt', '#fig-mm', '#fig-width'].forEach(id => $(id).addEventListener('change', () => { $('#fig-mm').disabled = $('#fig-width').value !== 'custom'; $('#fig-pt').disabled = $('#fig-width').value !== 'auto'; figNote(); }));
 $('#fig-mm').disabled = true; $('#fig-pt').disabled = $('#fig-width').value !== 'auto';
 
@@ -214,7 +214,7 @@ function renderResults() {
     tcounts = {}; tOver = false; tsum = tcols.map(c => ({ id: c.id, name: c.name }));
     trows = [...new Set(rows.map(r => r.s.name))].map(n => { const rs = rows.filter(r => r.s.name === n); return { name: n, overall: null, js: tcols.map(c => { const r = c.o == null ? rs[0] : rs.find(q => oc(q) === c.o), j = r ? cj(r.f.doms[c.i]) : null; if (j) { const w = ui.weighted ? r.s.weight : 1; (tcounts[c.id] ||= {})[j] = (tcounts[c.id][j] || 0) + w; } return r ? r.f.doms[c.i] : null; }) }; });
   }
-  const fg = figSettings(), tl = trafficLight(trows, tcols, { title, legend, legendOverall, fs: fg.fs, st: fg.st, heads: fg.heads, overall: tOver });
+  const fg = figSettings(), tl = trafficLight(trows, tcols, { title, legend, legendOverall, fs: fg.fs, st: fg.st, heads: fg.heads, overall: tOver && fg.overall, overallText: fg.overallText, overallSep: fg.overallSep, grid: fg.grid });
   const sbItems = summaryBar(tsum.filter(c => c.id !== 'Global'), tcounts, levelsAll, { title: title ? `${title} · summary` : 'Summary', weighted: ui.weighted, fs: fg.fs, st: fg.st }), glob = custom ? legendOverall : levelsAll;
   const sbGlobal = custom ? summaryBar([{ id: 'Global', name: 'Overall judgement' }], counts, glob, { weighted: false, fs: fg.fs, st: fg.st }) : null;
   const nA = rows.length, g = rows.map(r => r.f.overall).filter(Boolean), gc = {}; g.forEach(j => (gc[j] = (gc[j] || 0) + 1));

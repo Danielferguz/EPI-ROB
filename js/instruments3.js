@@ -1,7 +1,7 @@
 // ROBINS-I V2 (seguimiento/cohortes; borrador del 20 de noviembre de 2025, Sterne, Higgins et al., www.riskofbias.info).
 // Los algoritmos transcriben los diagramas de flujo de cada dominio de la guía oficial. Las preguntas están resumidas y parafraseadas:
 // consulte el documento original (CC BY-NC-ND 4.0) para el texto completo y la guía de cada pregunta.
-import { register, O5, isY, isN, J } from './instruments.js?v=2026.10.25-6';
+import { register, O5, isY, isN, J } from './instruments.js?v=2026.10.25-7';
 
 const inn = (v, ...xs) => xs.includes(v);
 const O4 = ['Y', 'PY', 'PN', 'N'], OW = ['Y', 'PY', 'WN', 'SN', 'NI'], OSW = ['SY', 'WY', 'PN', 'N', 'NI'];
