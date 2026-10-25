@@ -1,13 +1,13 @@
 // EPI-ROB · interfaz: guía, proyecto, evaluación guiada, concordancia y consenso, figuras y exportación.
-import { INSTRUMENTS, instOf, LV, ANS, defMeta, visibleItems } from './instruments.js?v=2026.10.25-2';
-import { GUIDES } from './guides.js?v=2026.10.25-2';
-import { newProject, newStudy, hasData, finalKey, evalStudy, finalStudy, load, save, parseProject, agreement, kappaLabel, robvisCSV, fromRobvisRows } from './store.js?v=2026.10.25-2';
-import { EXAMPLES } from './examples.js?v=2026.10.25-2';
-import { trafficLight, summaryBar } from './rplots.js?v=2026.10.25-2';
-import { LVEN, domEN, colEN, UNIT, EX_TITLE } from './en.js?v=2026.10.25-2';
-import { figWrap, bindFigs, figSettings } from './figs.js?v=2026.10.25-2';
-import { readFile, download } from './io.js?v=2026.10.25-2';
-import { HELP_HTML, GUIDE_HTML } from './help.js?v=2026.10.25-2';
+import { INSTRUMENTS, instOf, LV, ANS, defMeta, visibleItems } from './instruments.js?v=2026.10.25-3';
+import { GUIDES } from './guides.js?v=2026.10.25-3';
+import { newProject, newStudy, hasData, finalKey, evalStudy, finalStudy, load, save, parseProject, agreement, kappaLabel, robvisCSV, fromRobvisRows } from './store.js?v=2026.10.25-3';
+import { EXAMPLES } from './examples.js?v=2026.10.25-3';
+import { trafficLight, summaryBar } from './rplots.js?v=2026.10.25-3';
+import { LVEN, domEN, colEN, UNIT, EX_TITLE } from './en.js?v=2026.10.25-3';
+import { figWrap, bindFigs, figSettings } from './figs.js?v=2026.10.25-3';
+import { readFile, download } from './io.js?v=2026.10.25-3';
+import { HELP_HTML, GUIDE_HTML } from './help.js?v=2026.10.25-3';
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

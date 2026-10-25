@@ -15,7 +15,7 @@ export const LV = {
   unclear: { t: 'No claro', s: '?', c: '#9AA3A6' }, ni: { t: 'Sin información', s: '?', c: '#9AA3A6' },
   y: { t: 'Sí', s: '+', c: '#4F9D6B' }, py: { t: 'Sí parcial', s: '±', c: '#E3B341' }, n: { t: 'No', s: '×', c: '#C25450' }, na: { t: 'No aplica', s: '·', c: '#9AA3A6' },
   chigh: { t: 'Confianza alta', s: 'H', c: '#4F9D6B' }, cmod: { t: 'Confianza moderada', s: 'M', c: '#E3B341' }, clow: { t: 'Confianza baja', s: 'L', c: '#C25450' }, ccrit: { t: 'Confianza críticamente baja', s: 'CL', c: '#8B2E3B' },
-  lowc: { t: 'Bajo, salvo confusión no controlada', s: '+', c: '#8BC34A' }, vhigh: { t: 'Riesgo muy alto', s: '!', c: '#1B1B1B' },
+  lowc: { t: 'Bajo, salvo confusión no controlada', s: '+', c: '#4F9D6B' }, vhigh: { t: 'Riesgo muy alto', s: '!', c: '#1B1B1B' },
   inc: { t: 'Incluir', s: '+', c: '#4F9D6B' }, seek: { t: 'Buscar más información', s: '?', c: '#E3B341' }, exc: { t: 'Excluir', s: '×', c: '#C25450' },
   qgood: { t: 'Calidad buena', s: 'G', c: '#4F9D6B' }, qfair: { t: 'Calidad regular', s: 'F', c: '#E3B341' }, qpoor: { t: 'Calidad pobre', s: 'P', c: '#C25450' },
   conc_low: { t: 'Preocupación baja', s: '+', c: '#4F9D6B' }, conc_high: { t: 'Preocupación alta', s: '×', c: '#C25450' }, conc_unclear: { t: 'Preocupación no clara', s: '?', c: '#9AA3A6' },

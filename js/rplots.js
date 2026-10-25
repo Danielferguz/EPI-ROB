@@ -1,14 +1,14 @@
 // Figuras de riesgo de sesgo en SVG: semáforo (estudios × dominios) y barras de resumen (proporción por dominio, opcionalmente ponderada).
 // Dos estilos: «robvis» (círculos sin cuadrícula) y «revman» (cuadrícula negra con círculos + / ? / −, como las figuras de RevMan).
 // El tamaño de letra fs (unidades de la figura) escala textos y espaciados; el ancho final lo fija figs.js (ver data-fs).
-import { LV } from './instruments.js?v=2026.10.25-2';
-import { LVEN } from './en.js?v=2026.10.25-2';
+import { LV } from './instruments.js?v=2026.10.25-3';
+import { LVEN } from './en.js?v=2026.10.25-3';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const style = fs => `<style>text{font:${fs}px system-ui,sans-serif;fill:currentColor}.h{font-weight:600}.m{fill:var(--muted,#666)}.s{font-size:${+(fs * 0.92).toFixed(2)}px}</style>`;
-const dark = new Set(['some', 'moderate', 'unclear', 'ni', 'py', 'na', 'cmod', 'conc_unclear', 'seek', 'qfair', 'lowc']);
+const dark = new Set(['some', 'moderate', 'unclear', 'ni', 'py', 'na', 'cmod', 'conc_unclear', 'seek', 'qfair']);
 const wrap = (t, n) => { const w = String(t).split(/\s+/), out = []; let cur = ''; for (const x of w) { if ((cur + ' ' + x).trim().length > n && cur) { out.push(cur); cur = x; } else cur = (cur + ' ' + x).trim(); } if (cur) out.push(cur); return out; };
 // colores y símbolos de RevMan (verde +, amarillo ?, rojo −); los niveles extra de ROBINS-I/E mantienen símbolos propios
-const RM = { low: ['#66CC33', '+'], lowc: ['#66CC33', '+'], some: ['#EEEE55', '?'], unclear: ['#EEEE55', '?'], ni: ['#EEEE55', '?'], moderate: ['#EEEE55', '?'], high: ['#D8361F', '−'], serious: ['#F28C28', '×'], critical: ['#8B1A1A', '!'], vhigh: ['#8B1A1A', '!'] };
+const RM = { low: ['#6CC24A', '+'], lowc: ['#6CC24A', '+'], some: ['#FBEE5C', '?'], unclear: ['#FBEE5C', '?'], ni: ['#FBEE5C', '?'], moderate: ['#FBEE5C', '?'], high: ['#C4402C', '−'], serious: ['#F28C28', '×'], critical: ['#8B1A1A', '!'], vhigh: ['#8B1A1A', '!'] };
 export const look = (l, st) => { const d = LV[l]; if (!d) return null; const r = st === 'revman' && RM[l]; return { c: r ? r[0] : d.c, s: r ? r[1] : d.s, t: LVEN[l] || d.t, ink: st === 'revman' ? '#000000' : (dark.has(l) ? '#1B1B1B' : '#FFFFFF') }; };
 const dom = id => /^D\d+$/.test(String(id));
 const letter = i => String.fromCharCode(65 + i);
@@ -33,9 +33,9 @@ export function trafficLight(rows, cols, { title = '', legend = [], legendOveral
   const rowH = Math.max(ch, ...names.map(n => lh * n.length + 6 * k)), nc = cols.length + (overall ? 1 : 0), gap = overall ? 12 * k : 0;
   const x0 = rm ? 8 + lw + 14 * k : lw + 14 * k, top = (rm ? 30 : 36) * k + (title ? 18 * k : 0);
   const heads = [...cols.map((c, i) => (rm && cols.every(q => dom(q.id)) ? letter(i) : (c.short ?? c.id))), ...(overall ? ['Overall'] : [])];
-  // leyenda de dominios (RevMan): (A) nombre completo
-  const keyLines = rm && cols.every(c => dom(c.id) && c.name) ? cols.flatMap((c, i) => wrap(`(${letter(i)}) ${c.name}`, Math.round(110 / k * 1.1))) : [];
-  const Wn = x0 + nc * cw + gap + 20 * k, W = Math.max(Wn, 300 * k, rm ? 420 * k : 0);
+  // leyenda de dominios: RevMan «(A) nombre»; robvis «D1: nombre»
+  const hasKey = cols.every(c => dom(c.id) && c.name), Wn = x0 + nc * cw + gap + 20 * k, W = Math.max(Wn, 300 * k, hasKey || rm ? 420 * k : 0);
+  const keyLines = hasKey ? cols.flatMap((c, i) => wrap(`${rm ? `(${letter(i)})` : `${c.short ?? c.id}:`} ${c.name}`, Math.floor((W - 16 * k) / (5.8 * k)))) : [];
   const nl = L => (L ? (legendRow(L, 8, 0, W, fs, st).y / (20 * k)) + 1 : 0);
   const keyH = keyLines.length ? keyLines.length * lh + 14 * k : 0;
   const H = top + rows.length * rowH + 16 * k + keyH + 22 * k * (nl(legend) + nl(legendOverall)) + (rm ? 6 * k : 0);
@@ -48,10 +48,10 @@ export function trafficLight(rows, cols, { title = '', legend = [], legendOveral
     names[i].forEach((l, q) => { const yy = yc + 4 * k + (q - (names[i].length - 1) / 2) * lh; s += rm ? `<text x="8" y="${yy}">${esc(l)}</text>` : `<text x="${lw + 4}" y="${yy}" text-anchor="end">${esc(l)}</text>`; });
     vals.forEach((c, q) => {
       const j = c && typeof c === 'object' ? c.j : c, d = look(j, st), lab = c && typeof c === 'object' && c.t ? c.t : d?.s, X = cx(q);
-      if (rm) s += `<rect x="${X - cw / 2}" y="${top + i * rowH}" width="${cw}" height="${rowH}" fill="#FFFFFF" stroke="#000000" stroke-width="${+(1.2 * k).toFixed(2)}"/>`;
-      s += d ? `<circle cx="${X}" cy="${yc}" r="${(rm ? ch * 0.36 : ch * 0.38)}" fill="${d.c}"><title>${esc(r.name)}: ${esc(d.t)}${c && c.t ? ' ' + esc(c.t) : ''}</title></circle><text x="${X}" y="${yc + 4.5 * k}" text-anchor="middle" style="fill:${d.ink};font-weight:700;font-size:${+((c && c.t ? 9.5 : 13) * k).toFixed(2)}px">${esc(lab)}</text>` : `<circle cx="${X}" cy="${yc}" r="${ch * 0.38}" fill="none" stroke="#B5BCBE" stroke-dasharray="2 2"/>`;
+      s += d ? `<circle cx="${X}" cy="${yc}" r="${ch * 0.38}" fill="${d.c}"${rm ? ` stroke="#000000" stroke-width="${+(1.3 * k).toFixed(2)}"` : ''}><title>${esc(r.name)}: ${esc(d.t)}${c && c.t ? ' ' + esc(c.t) : ''}</title></circle><text x="${X}" y="${yc + 4.5 * k}" text-anchor="middle" style="fill:${d.ink};font-weight:700;font-size:${+((c && c.t ? 9.5 : 13) * k).toFixed(2)}px">${esc(lab)}</text>` : `<circle cx="${X}" cy="${yc}" r="${ch * 0.38}" fill="none" stroke="#B5BCBE" stroke-dasharray="2 2"/>`;
     });
   });
+  if (rm) s += `<line x1="8" x2="${W - 8}" y1="${top - 4 * k}" y2="${top - 4 * k}" stroke="#000000" stroke-width="${+(1.2 * k).toFixed(2)}"/>`;
   if (overall && !rm) s += `<line x1="${x0 + cols.length * cw + gap / 2}" x2="${x0 + cols.length * cw + gap / 2}" y1="${top - 4 * k}" y2="${top + rows.length * rowH}" stroke="#B5BCBE"/>`;
   let yl = top + rows.length * rowH + 22 * k;
   if (keyLines.length) { keyLines.forEach((t, q) => { s += `<text x="8" y="${yl + q * lh - 4 * k}" class="s">${esc(t)}</text>`; }); yl += keyLines.length * lh + 6 * k; }

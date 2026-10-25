@@ -1,10 +1,10 @@
 // Ejemplos didácticos con estudios FICTICIOS (no corresponden a publicaciones reales). Cada instrumento tiene varios escenarios;
 // el perfil de cada estudio (una letra por dominio) genera las respuestas, y el sustento de cada dominio se toma de la guía (guides.js).
-import { ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2 } from './instruments.js?v=2026.10.25-2';
-import { ROBINS_E, ROB1, JBI, NOS, JBI_ITEMS, NOS_ITEMS } from './instruments2.js?v=2026.10.25-2';
-import { ROBINS_I2 } from './instruments3.js?v=2026.10.25-2';
-import { newStudy } from './store.js?v=2026.10.25-2';
-import { GUIDES } from './guides.js?v=2026.10.25-2';
+import { ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2 } from './instruments.js?v=2026.10.25-3';
+import { ROBINS_E, ROB1, JBI, NOS, JBI_ITEMS, NOS_ITEMS } from './instruments2.js?v=2026.10.25-3';
+import { ROBINS_I2 } from './instruments3.js?v=2026.10.25-3';
+import { newStudy } from './store.js?v=2026.10.25-3';
+import { GUIDES } from './guides.js?v=2026.10.25-3';
 
 const LVL = { rob2: { L: 'low', S: 'some', H: 'high' }, 'robins-i': { L: 'low', M: 'moderate', S: 'serious', C: 'critical', N: 'ni' }, quadas2: { L: 'low', H: 'high', U: 'unclear' }, probast: { L: 'low', H: 'high', U: 'unclear' }, 'robins-e': { L: 'low', S: 'some', H: 'high', V: 'vhigh' }, 'robins-i2': { L: 'low', M: 'moderate', S: 'serious', C: 'critical' }, rob1: { L: 'low', H: 'high', U: 'unclear' } };
 const lowc = (key, k, c) => (key === 'robins-e' || key === 'robins-i2') && k === 0 && c === 'L';
@@ -86,17 +86,17 @@ const amSet = (id, title, desc, list) => ex(id, title, desc, () => ({ inst: AMST
 
 export const EXAMPLES = {
   rob2: [
-    rob2Set('dexa', 'Dexametasona en neumonía grave', 'Cinco ensayos con distintos perfiles: del ensayo impecable al que combina ocultamiento ausente y análisis por protocolo.', [['Andrade 2021', 'LLLLL', 'RR 0,83 (IC 95 % 0,75–0,93), mortalidad a 28 días'], ['Benítez 2019', 'LSLSL', 'RR 0,90, mortalidad a 28 días'], ['Castro 2020', 'HSLHS', 'RR 0,60, mortalidad a 28 días'], ['Domínguez 2018', 'SLSLL', 'RR 0,95, mortalidad a 28 días'], ['Espinoza 2022', 'LLHLS', 'RR 0,78, mortalidad a 28 días']]),
-    rob2Set('dolor', 'Intervenciones para el dolor lumbar', 'Desenlace autorreportado: el cegamiento y la selección del resultado pesan más. Ensayos abiertos.', [['Fuentes 2017', 'SSLHS', 'DM −1,2 puntos EVA a 8 semanas'], ['Gallardo 2020', 'LHLHH', 'DM −2,0 puntos EVA a 12 semanas'], ['Herrera 2022', 'LLLSL', 'DM −0,8 puntos EVA a 8 semanas'], ['Ibáñez 2016', 'SHSHS', 'DM −1,5 puntos EVA a 4 semanas']]),
-    rob2Set('perdidas', 'Ensayos con pérdidas de seguimiento', 'Énfasis en el dominio 3: datos faltantes y su relación con el desenlace.', [['Jiménez 2019', 'LLLLL', 'HR 0,80, progresión a 2 años'], ['Klein 2018', 'LLHLL', 'HR 0,70, progresión a 2 años'], ['Luna 2021', 'LLSLL', 'HR 0,85, progresión a 2 años'], ['Mora 2020', 'SLHLS', 'HR 0,65, progresión a 2 años']]),
+    rob2Set('dexa', 'Dexametasona en neumonía grave', 'Cinco ensayos con distintos perfiles: del ensayo impecable al que combina ocultamiento ausente y análisis por protocolo.', [['Andrade 2021', 'LLLLL', 'RR 0,83 (IC 95 % 0,75–0,93), mortalidad a 28 días'], ['Bennett 2019', 'LSLSL', 'RR 0,90, mortalidad a 28 días'], ['Castro 2020', 'HSLHS', 'RR 0,60, mortalidad a 28 días'], ['Dawson 2018', 'SLSLL', 'RR 0,95, mortalidad a 28 días'], ['Espinoza 2022', 'LLHLS', 'RR 0,78, mortalidad a 28 días']]),
+    rob2Set('dolor', 'Intervenciones para el dolor lumbar', 'Desenlace autorreportado: el cegamiento y la selección del resultado pesan más. Ensayos abiertos.', [['Fuentes 2017', 'SSLHS', 'DM −1,2 puntos EVA a 8 semanas'], ['Gallardo 2020', 'LHLHH', 'DM −2,0 puntos EVA a 12 semanas'], ['Herrera 2022', 'LLLSL', 'DM −0,8 puntos EVA a 8 semanas'], ['Irving 2016', 'SHSHS', 'DM −1,5 puntos EVA a 4 semanas']]),
+    rob2Set('perdidas', 'Ensayos con pérdidas de seguimiento', 'Énfasis en el dominio 3: datos faltantes y su relación con el desenlace.', [['Jenkins 2019', 'LLLLL', 'HR 0,80, progresión a 2 años'], ['Klein 2018', 'LLHLL', 'HR 0,70, progresión a 2 años'], ['Luna 2021', 'LLSLL', 'HR 0,85, progresión a 2 años'], ['Mora 2020', 'SLHLS', 'HR 0,65, progresión a 2 años']]),
   ],
   'robins-i': [
-    robinsISet('estatinas', 'Estatinas y demencia (cohortes)', 'Cuatro cohortes con juicios de dominio distintos; el global sale de la regla del instrumento.', [['Gómez 2020', 'MLLLLLL', 'HR 0,78'], ['Herrera 2019', 'SMLLMLM', 'HR 0,62'], ['Ibáñez 2018', 'CSMMSMS', 'HR 0,40'], ['Jiménez 2021', 'MNLLNML', 'HR 0,85']]),
+    robinsISet('estatinas', 'Estatinas y demencia (cohortes)', 'Cuatro cohortes con juicios de dominio distintos; el global sale de la regla del instrumento.', [['Gordon 2020', 'MLLLLLL', 'HR 0,78'], ['Herrera 2019', 'SMLLMLM', 'HR 0,62'], ['Irving 2018', 'CSMMSMS', 'HR 0,40'], ['Jenkins 2021', 'MNLLNML', 'HR 0,85']]),
     robinsISet('cirugia', 'Cirugía frente a tratamiento médico', 'Comparaciones no aleatorizadas donde la gravedad determina la intervención.', [['Klein 2017', 'SMMLMMM', 'OR 0,55'], ['Luna 2018', 'MLLMLLL', 'OR 0,70'], ['Mora 2019', 'CSSMMSM', 'OR 0,30']]),
   ],
   'robins-i2': [
-    robinsI2Set('estatinas2', 'Estatinas y demencia (cohortes de nuevos usuarios)', 'Efecto de la asignación (por intención de tratar): del estudio con control impecable al que combina confusión grave y selección por usuarios prevalentes.', [['Gómez 2022', 'LLLLLL', 'HR 0,80 (IC 95 % 0,70–0,92)'], ['Herrera 2021', 'MLMLLM', 'HR 0,70 (IC 95 % 0,58–0,85)'], ['Ibáñez 2020', 'SMSMSM', 'HR 0,55 (IC 95 % 0,40–0,76)'], ['Jiménez 2019', 'CSSSSC', 'HR 0,30 (IC 95 % 0,18–0,50)']]),
-    robinsI2Set('emulacion', 'Emulación de ensayo con efecto por protocolo', 'La variante B del dominio 1 exige métodos G para la confusión tiempo-dependiente (C4 = Sí).', [['Klein 2023', 'LLLLLL', 'HR 0,78', { c4: 'Y' }], ['Luna 2022', 'MLMLMM', 'HR 0,85', { c4: 'Y' }], ['Mora 2021', 'SLLMLL', 'HR 0,60', { c4: 'Y' }], ['Núñez 2020', 'CMSLLM', 'HR 0,45', { c4: 'Y' }]]),
+    robinsI2Set('estatinas2', 'Estatinas y demencia (cohortes de nuevos usuarios)', 'Efecto de la asignación (por intención de tratar): del estudio con control impecable al que combina confusión grave y selección por usuarios prevalentes.', [['Gordon 2022', 'LLLLLL', 'HR 0,80 (IC 95 % 0,70–0,92)'], ['Herrera 2021', 'MLMLLM', 'HR 0,70 (IC 95 % 0,58–0,85)'], ['Irving 2020', 'SMSMSM', 'HR 0,55 (IC 95 % 0,40–0,76)'], ['Jenkins 2019', 'CSSSSC', 'HR 0,30 (IC 95 % 0,18–0,50)']]),
+    robinsI2Set('emulacion', 'Emulación de ensayo con efecto por protocolo', 'La variante B del dominio 1 exige métodos G para la confusión tiempo-dependiente (C4 = Sí).', [['Klein 2023', 'LLLLLL', 'HR 0,78', { c4: 'Y' }], ['Luna 2022', 'MLMLMM', 'HR 0,85', { c4: 'Y' }], ['Mora 2021', 'SLLMLL', 'HR 0,60', { c4: 'Y' }], ['Nelson 2020', 'CMSLLM', 'HR 0,45', { c4: 'Y' }]]),
     robinsI2Set('parteb', 'Parte B: cuando no hace falta seguir', 'Resultados sin ningún intento de control de la confusión o con un método de medida inapropiado: riesgo crítico directo.', [['Ortiz 2018', 'LLLLLL', 'HR 0,90'], ['Paz 2017', 'CMLLLL', 'RR 0,40 (sin ajustar)', { b1: 'N', b2: 'Y' }], ['Quispe 2016', 'LLLLSL', 'RR 0,70 (escala no validada)', { b3: 'Y' }]]),
   ],
   quadas2: [
@@ -104,11 +104,11 @@ export const EXAMPLES = {
     quadasSet('ia', 'Inteligencia artificial en radiografía de tórax', 'Casos y controles frente a cohortes prospectivas.', { index: 'Algoritmo de IA', ref: 'Lectura de consenso de radiólogos', target: 'Neumonía' }, [['Soto 2021', 'HHLL'], ['Torres 2022', 'LLLL'], ['Uribe 2020', 'LHUL'], ['Vega 2023', 'LLLH']]),
   ],
   probast: [
-    probastSet('erc', 'Modelos de riesgo de enfermedad renal crónica', 'Desarrollo, desarrollo con validación y solo validación.', [['Salas 2021 (desarrollo y validación)', 'LLLL', 'devval'], ['Tapia 2019 (desarrollo)', 'LLLL', 'dev'], ['Urrutia 2022 (validación)', 'LULL', 'val'], ['Vera 2020 (desarrollo y validación)', 'HLLH', 'devval'], ['Walker 2023 (validación)', 'LLLL', 'val']]),
-    probastSet('sepsis', 'Puntajes de sepsis', 'Predictores que no están disponibles en el momento de uso y desenlaces mal definidos.', [['Xu 2020 (desarrollo)', 'LHLH', 'dev'], ['Yáñez 2022 (validación)', 'LLUL', 'val'], ['Zapata 2021 (desarrollo y validación)', 'LLHL', 'devval']]),
+    probastSet('erc', 'Modelos de riesgo de enfermedad renal crónica', 'Desarrollo, desarrollo con validación y solo validación.', [['Salas 2021 (development and validation)', 'LLLL', 'devval'], ['Tapia 2019 (development)', 'LLLL', 'dev'], ['Urrutia 2022 (validation)', 'LULL', 'val'], ['Vera 2020 (development and validation)', 'HLLH', 'devval'], ['Walker 2023 (validation)', 'LLLL', 'val']]),
+    probastSet('sepsis', 'Puntajes de sepsis', 'Predictores que no están disponibles en el momento de uso y desenlaces mal definidos.', [['Xu 2020 (development)', 'LHLH', 'dev'], ['Young 2022 (validation)', 'LLUL', 'val'], ['Zapata 2021 (development and validation)', 'LLHL', 'devval']]),
   ],
   'robins-e': [
-    robinsESet('pm25', 'PM2,5 y mortalidad (cohortes)', 'Exposición ambiental: confusión y medición de la exposición pesan más.', [['Aguirre 2019', 'LLLLLLL', {}], ['Bravo 2020', 'SSSLSLS', {}], ['Cortés 2018', 'HSHLHSH', {}], ['Duarte 2021', 'VHSLSLS', {}]]),
+    robinsESet('pm25', 'PM2,5 y mortalidad (cohortes)', 'Exposición ambiental: confusión y medición de la exposición pesan más.', [['Aguirre 2019', 'LLLLLLL', {}], ['Bravo 2020', 'SSSLSLS', {}], ['Cooper 2018', 'HSHLHSH', {}], ['Duarte 2021', 'VHSLSLS', {}]]),
     robinsESet('solventes', 'Exposición ocupacional a solventes', 'Incluye un resultado que se detiene en la sección B (método de medida de la exposición inapropiado).', [['Escobar 2017', 'SVHLSLH', { b1: 'Y' }], ['Flores 2016', 'HHSLSSS', { b1: 'Y' }], ['Guerra 2015', 'LLLLLLL', { b3: 'Y' }]]),
   ],
   rob1: [
@@ -120,7 +120,7 @@ export const EXAMPLES = {
     jbiSet('vih', 'Prevalencia de VIH por región', 'Cuestiones de cobertura y de tasa de respuesta.', [['Bernal 2017', 'yyyyyyyyy'], ['Cabrera 2019', 'ynyyyyynu'], ['Delgado 2022', 'yuyyuuyyy']]),
   ],
   'nos-cohort': [
-    nosSet('tabaco', 'Tabaquismo y cáncer de pulmón (cohortes)', 'Cuatro cohortes: de una buena a una de calidad pobre según la regla AHRQ.', [['Espinosa 2015', 'aaaaaaaaa', { main: 'edad', follow: '10 años' }, 'qgood'], ['Figueroa 2012', 'bbcaabaab', { main: 'edad', follow: '10 años' }, 'qfair'], ['Gutiérrez 2010', 'cbcbbbcbd', { main: 'edad' }, 'qpoor'], ['Hidalgo 2018', 'abcaabaaa', { main: 'edad', follow: '5 años' }, 'qfair']]),
+    nosSet('tabaco', 'Tabaquismo y cáncer de pulmón (cohortes)', 'Cuatro cohortes: de una buena a una de calidad pobre según la regla AHRQ.', [['Espinosa 2015', 'aaaaaaaaa', { main: 'edad', follow: '10 años' }, 'qgood'], ['Figueroa 2012', 'bbcaabaab', { main: 'edad', follow: '10 años' }, 'qfair'], ['Griffin 2010', 'cbcbbbcbd', { main: 'edad' }, 'qpoor'], ['Hidalgo 2018', 'abcaabaaa', { main: 'edad', follow: '5 años' }, 'qfair']]),
     nosSet('dieta', 'Dieta mediterránea y mortalidad', 'Cohortes poblacionales con distinta calidad de seguimiento.', [['Iglesias 2014', 'aabaaaaab', { main: 'edad y sexo' }, 'qgood'], ['Jara 2016', 'ccdabbdbc', { main: 'edad y sexo' }, 'qpoor'], ['Lara 2019', 'abcaabbab', { main: 'edad y sexo' }, 'qfair']]),
   ],
   amstar2: [
