@@ -1,10 +1,10 @@
 // Ejemplos didácticos con estudios FICTICIOS (no corresponden a publicaciones reales). Cada instrumento tiene varios escenarios;
 // el perfil de cada estudio (una letra por dominio) genera las respuestas, y el sustento de cada dominio se toma de la guía (guides.js).
-import { ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2 } from './instruments.js?v=2026.10.25-5';
-import { ROBINS_E, ROB1, JBI, NOS, JBI_ITEMS, NOS_ITEMS } from './instruments2.js?v=2026.10.25-5';
-import { ROBINS_I2 } from './instruments3.js?v=2026.10.25-5';
-import { newStudy } from './store.js?v=2026.10.25-5';
-import { GUIDES } from './guides.js?v=2026.10.25-5';
+import { ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2 } from './instruments.js?v=2026.10.25-6';
+import { ROBINS_E, ROB1, JBI, NOS, JBI_ITEMS, NOS_ITEMS } from './instruments2.js?v=2026.10.25-6';
+import { ROBINS_I2 } from './instruments3.js?v=2026.10.25-6';
+import { newStudy } from './store.js?v=2026.10.25-6';
+import { GUIDES } from './guides.js?v=2026.10.25-6';
 
 const LVL = { rob2: { L: 'low', S: 'some', H: 'high' }, 'robins-i': { L: 'low', M: 'moderate', S: 'serious', C: 'critical', N: 'ni' }, quadas2: { L: 'low', H: 'high', U: 'unclear' }, probast: { L: 'low', H: 'high', U: 'unclear' }, 'robins-e': { L: 'low', S: 'some', H: 'high', V: 'vhigh' }, 'robins-i2': { L: 'low', M: 'moderate', S: 'serious', C: 'critical' }, rob1: { L: 'low', H: 'high', U: 'unclear' } };
 const lowc = (key, k, c) => (key === 'robins-e' || key === 'robins-i2') && k === 0 && c === 'L';

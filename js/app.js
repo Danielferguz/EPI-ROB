@@ -1,13 +1,13 @@
 // EPI-ROB · interfaz: guía, proyecto, evaluación guiada, concordancia y consenso, figuras y exportación.
-import { INSTRUMENTS, instOf, LV, ANS, defMeta, visibleItems } from './instruments.js?v=2026.10.25-5';
-import { GUIDES } from './guides.js?v=2026.10.25-5';
-import { newProject, newStudy, hasData, finalKey, evalStudy, finalStudy, load, save, parseProject, agreement, kappaLabel, robvisCSV, fromRobvisRows } from './store.js?v=2026.10.25-5';
-import { EXAMPLES } from './examples.js?v=2026.10.25-5';
-import { trafficLight, summaryBar } from './rplots.js?v=2026.10.25-5';
-import { LVEN, domEN, colEN, UNIT, EX_TITLE } from './en.js?v=2026.10.25-5';
-import { figWrap, bindFigs, figSettings } from './figs.js?v=2026.10.25-5';
-import { readFile, download } from './io.js?v=2026.10.25-5';
-import { HELP_HTML, GUIDE_HTML } from './help.js?v=2026.10.25-5';
+import { INSTRUMENTS, instOf, LV, ANS, defMeta, visibleItems } from './instruments.js?v=2026.10.25-6';
+import { GUIDES } from './guides.js?v=2026.10.25-6';
+import { newProject, newStudy, hasData, finalKey, evalStudy, finalStudy, load, save, parseProject, agreement, kappaLabel, robvisCSV, fromRobvisRows } from './store.js?v=2026.10.25-6';
+import { EXAMPLES } from './examples.js?v=2026.10.25-6';
+import { trafficLight, summaryBar } from './rplots.js?v=2026.10.25-6';
+import { LVEN, domEN, colEN, UNIT, EX_TITLE } from './en.js?v=2026.10.25-6';
+import { figWrap, bindFigs, figSettings } from './figs.js?v=2026.10.25-6';
+import { readFile, download } from './io.js?v=2026.10.25-6';
+import { HELP_HTML, GUIDE_HTML } from './help.js?v=2026.10.25-6';
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -71,8 +71,9 @@ function renderProject() {
     <label>Revisor 1<input id="p-nA" value="${esc(P.names.A)}"></label><label class="two">Revisor 2<input id="p-nB" value="${esc(P.names.B)}"></label></div></div>
   <div class="card"><h2>${esc(cap(plu(I.unit)))} a evaluar</h2>
     <div class="row gap wrap"><input id="s-name" placeholder="Autor año (p. ej., Pérez 2021)" style="min-width:240px"><button class="primary" id="s-add">Añadir</button><span class="grow"></span><label class="ghost btn">Importar juicios (CSV robvis)<input type="file" id="f-robvis" accept=".csv,.txt,.xlsx" hidden></label><label class="ghost btn">Abrir proyecto (JSON)<input type="file" id="f-json" accept=".json" hidden></label></div>
+    <datalist id="o-list">${[...new Set(P.studies.map(s => s.outcome).filter(Boolean))].map(o => `<option value="${esc(o)}">`).join('')}</datalist><p class="sub">¿Un dominio se valora por desenlace (p. ej., cegamiento de la evaluación)? Añada el mismo estudio una vez por desenlace y escriba el desenlace; en Resultados podrá mostrar esos dominios en columnas separadas.</p>
     <details class="mt"><summary>Pegar una lista (una por línea)</summary><textarea id="s-paste" rows="5" placeholder="Pérez 2021&#10;Gómez 2019&#10;…"></textarea><button class="ghost" id="s-addmany">Añadir lista</button></details>
-    <div class="tablewrap"><table class="data"><thead><tr><th>#</th><th>Nombre</th><th>Peso (figura resumen)</th><th>Progreso</th><th></th></tr></thead><tbody>${P.studies.map((s, i) => { const e = evalStudy(P, s, 'A'), pr = progress(I, e); return `<tr data-id="${s.id}"><td>${i + 1}</td><td><input data-k="name" value="${esc(s.name)}"></td><td><input data-k="weight" type="number" step="any" min="0" value="${s.weight}" style="width:90px"></td><td>${pr}</td><td><button class="ghost" data-open="${s.id}">Evaluar</button> <button class="ghost danger" data-del="${s.id}" aria-label="Eliminar ${esc(s.name)}">✕</button></td></tr>`; }).join('') || '<tr><td colspan="5" class="muted">Aún no hay estudios.</td></tr>'}</tbody></table></div>
+    <div class="tablewrap"><table class="data"><thead><tr><th>#</th><th>Nombre</th><th>Desenlace (opcional)</th><th>Peso (figura resumen)</th><th>Progreso</th><th></th></tr></thead><tbody>${P.studies.map((s, i) => { const e = evalStudy(P, s, 'A'), pr = progress(I, e); return `<tr data-id="${s.id}"><td>${i + 1}</td><td><input data-k="name" value="${esc(s.name)}"></td><td><input data-k="outcome" value="${esc(s.outcome || '')}" placeholder="p. ej., Mortalidad" list="o-list"></td><td><input data-k="weight" type="number" step="any" min="0" value="${s.weight}" style="width:90px"></td><td>${pr}</td><td><button class="ghost" data-open="${s.id}">Evaluar</button> <button class="ghost danger" data-del="${s.id}" aria-label="Eliminar ${esc(s.name)}">✕</button></td></tr>`; }).join('') || '<tr><td colspan="6" class="muted">Aún no hay estudios.</td></tr>'}</tbody></table></div>
     <div class="stepnav"><button class="ghost" data-go="guia">← Guía</button><button class="primary" data-go="evaluar">Siguiente: evaluar →</button></div></div>`;
   $('#p-title').addEventListener('input', e => { P.title = e.target.value; commit(); });
   $('#p-inst').addEventListener('change', e => { if (P.studies.length && !confirm('Cambiar de instrumento borrará las respuestas de los estudios actuales (se conservan los nombres). ¿Continuar?')) { e.target.value = P.inst; return; } P.inst = e.target.value; P.studies = P.studies.map(s => newStudy(P.inst, s.name)); commit(); renderProject(); });
@@ -205,17 +206,26 @@ function renderResults() {
   if (custom) { cols = e0.cols.map(c => ({ ...c, short: colEN(c.short ?? c.id), name: colEN(c.name) })); legend = e0.legend; legendOverall = e0.legendOverall; sumCols = [...cols.map(c => ({ id: c.id, name: c.name })), { id: 'Global', name: 'Overall' }]; levelsAll = legend; }
   else { const first = P.studies[0].meta, ds = I.doms(first); cols = ds.map(d => ({ id: d.id, short: d.short, name: domEN(I.id, d.id, d.name) })); legend = I.legend || I.levels; levelsAll = legend; sumCols = [...ds.map(d => ({ id: d.id, name: domEN(I.id, d.id, d.name) })), { id: 'Global', name: 'Overall' }]; }
   const counts = {}; rows.forEach(r => { const w = ui.weighted ? r.s.weight : 1; (custom ? r.f.items : r.f.doms).forEach((c, i) => { const j = cj(c); if (!j) return; const id = sumCols[i].id; (counts[id] ||= {})[j] = (counts[id][j] || 0) + w; }); if (r.f.overall) (counts.Global ||= {})[r.f.overall] = (counts.Global[r.f.overall] || 0) + w; });
-  const trows = rows.map(r => ({ name: r.s.name, js: custom ? r.f.items : r.f.doms, overall: r.f.overall }));
-  const fg = figSettings(), tl = trafficLight(trows, cols, { title, legend, legendOverall, fs: fg.fs, st: fg.st, heads: fg.heads });
-  const sbItems = summaryBar(sumCols.filter(c => c.id !== 'Global'), counts, levelsAll, { title: title ? `${title} · summary` : 'Summary', weighted: ui.weighted, fs: fg.fs, st: fg.st }), glob = custom ? legendOverall : levelsAll;
+  let trows = rows.map(r => ({ name: r.s.name, js: custom ? r.f.items : r.f.doms, overall: r.f.overall })), tcols = cols, tsum = sumCols, tcounts = counts, tOver = true;
+  // dominios valorados por desenlace: una columna por desenlace (los demás dominios quedan como «All outcomes»)
+  const po = new Set(P.perOut || []), outs = [...new Set(rows.map(r => (r.s.outcome || '').trim()).filter(Boolean))], pivot = !custom && po.size > 0 && outs.length > 0, oc = r => (r.s.outcome || '').trim();
+  if (pivot) {
+    tcols = []; cols.forEach((c, i) => { if (po.has(c.id)) outs.forEach(o => tcols.push({ ...c, id: `${c.id}@${o}`, name: `${c.name}: ${o}`, i, o })); else tcols.push({ ...c, name: `${c.name}: All outcomes`, i, o: null }); });
+    tcounts = {}; tOver = false; tsum = tcols.map(c => ({ id: c.id, name: c.name }));
+    trows = [...new Set(rows.map(r => r.s.name))].map(n => { const rs = rows.filter(r => r.s.name === n); return { name: n, overall: null, js: tcols.map(c => { const r = c.o == null ? rs[0] : rs.find(q => oc(q) === c.o), j = r ? cj(r.f.doms[c.i]) : null; if (j) { const w = ui.weighted ? r.s.weight : 1; (tcounts[c.id] ||= {})[j] = (tcounts[c.id][j] || 0) + w; } return r ? r.f.doms[c.i] : null; }) }; });
+  }
+  const fg = figSettings(), tl = trafficLight(trows, tcols, { title, legend, legendOverall, fs: fg.fs, st: fg.st, heads: fg.heads, overall: tOver });
+  const sbItems = summaryBar(tsum.filter(c => c.id !== 'Global'), tcounts, levelsAll, { title: title ? `${title} · summary` : 'Summary', weighted: ui.weighted, fs: fg.fs, st: fg.st }), glob = custom ? legendOverall : levelsAll;
   const sbGlobal = custom ? summaryBar([{ id: 'Global', name: 'Overall judgement' }], counts, glob, { weighted: false, fs: fg.fs, st: fg.st }) : null;
   const nA = rows.length, g = rows.map(r => r.f.overall).filter(Boolean), gc = {}; g.forEach(j => (gc[j] = (gc[j] || 0) + 1));
   box.innerHTML = `<div class="card"><h2>Resultados y figuras</h2><div class="howto"><div><b>Qué se ve</b>El juicio final de cada ${esc(I.unit)} por ${custom ? 'ítem o categoría' : 'dominio'} (semáforo) y la proporción de cada nivel (barras).</div><div><b>Para qué</b>Cumplir los requisitos de informe (PRISMA 2020 ítem 18; Cochrane) y decidir si un análisis de sensibilidad excluye estudios de alto riesgo.</div><div><b>Cómo interpretar</b>El semáforo describe, no puntúa: no sume dominios ni promedie. Los estudios con alto riesgo en un dominio crítico son los candidatos a un análisis de sensibilidad.</div></div>
     <div class="row gap wrap"><label class="inline">Juicios de <select id="r-view">${opt('final', P.twoRev ? 'Final (consenso si existe)' : 'Final', ui.view === 'final')}${P.twoRev ? ['A', 'B', 'C'].map(w => opt(w, P.names[w], ui.view === w)).join('') : ''}</select></label>${custom && I.kind !== 'nos' ? '' : `<label class="inline"><input type="checkbox" id="r-w"${ui.weighted ? ' checked' : ''}> Ponderar barras por el peso del estudio</label>`}</div>
+    ${custom ? '' : `<details class="mt"${(P.perOut || []).length ? ' open' : ''}><summary>Dominios valorados por desenlace (columnas separadas)</summary><p class="sub">Marque los dominios que se valoraron por separado para cada desenlace. Requiere que los estudios tengan escrito el «Desenlace» en el paso 2 (un estudio por desenlace con el mismo nombre). La figura tendrá una columna por desenlace en esos dominios.</p><div class="row gap wrap">${I.doms(P.studies[0].meta).map(d => `<label class="inline"><input type="checkbox" data-po="${esc(d.id)}"${(P.perOut || []).includes(d.id) ? ' checked' : ''}> ${esc(d.id)} ${esc(domEN(I.id, d.id, d.name))}</label>`).join('')}</div>${(P.perOut || []).length && !outs.length ? '<p class="warn">No hay desenlaces escritos: la figura no cambia hasta que añada «Desenlace» a los estudios.</p>' : ''}</details>`}
     <p class="sub">${nA} ${esc(nA > 1 ? plu(I.unit) : I.unit)} · ${Object.entries(gc).map(([j, n]) => `${LV[j].t}: ${n} (${pct(n / g.length)})`).join(' · ')}</p>
     <div class="plots single">${figWrap(tl, 'semaforo_riesgo_sesgo')}${figWrap(sbItems, 'resumen_riesgo_sesgo')}${sbGlobal ? figWrap(sbGlobal, 'resumen_global') : ''}</div>
     <h3>Table</h3><div class="tablewrap"><table class="data"><thead><tr><th>${esc(UNIT[I.unit] || cap(I.unit))}</th>${cols.map(c => `<th title="${esc(c.name || c.id)}">${esc(c.short ?? c.id)}</th>`).join('')}<th>Overall</th></tr></thead><tbody>${trows.map(r => `<tr><td>${esc(r.name)}</td>${[...r.js, r.overall].map(j => `<td>${j && typeof j === 'object' ? `${badgeEN(j.j)} <small>${esc(j.t || '')}</small>` : badgeEN(j)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     <div class="stepnav"><button class="ghost" data-go="consenso">← Concordancia</button><button class="primary" data-go="reporte">Siguiente: exportar →</button></div></div>`;
+  $$('[data-po]', box).forEach(c => c.addEventListener('change', () => { P.perOut = $$('[data-po]', box).filter(x => x.checked).map(x => x.dataset.po); commit(); renderResults(); }));
   $('#r-view')?.addEventListener('change', e => { ui.view = e.target.value; renderResults(); }); $('#r-w')?.addEventListener('change', e => { ui.weighted = e.target.checked; renderResults(); }); bindFigs(box); figNote();
 }
 
