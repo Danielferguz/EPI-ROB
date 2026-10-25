@@ -1,14 +1,14 @@
 // Figuras de riesgo de sesgo en SVG: semáforo (estudios × dominios) y barras de resumen (proporción por dominio, opcionalmente ponderada).
 // Dos estilos: «robvis» (círculos sin cuadrícula) y «revman» (cuadrícula negra con círculos + / ? / −, como las figuras de RevMan).
 // El tamaño de letra fs (unidades de la figura) escala textos y espaciados; el ancho final lo fija figs.js (ver data-fs).
-import { LV } from './instruments.js?v=2026.10.25-3';
-import { LVEN } from './en.js?v=2026.10.25-3';
+import { LV } from './instruments.js?v=2026.10.25-4';
+import { LVEN } from './en.js?v=2026.10.25-4';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const style = fs => `<style>text{font:${fs}px system-ui,sans-serif;fill:currentColor}.h{font-weight:600}.m{fill:var(--muted,#666)}.s{font-size:${+(fs * 0.92).toFixed(2)}px}</style>`;
 const dark = new Set(['some', 'moderate', 'unclear', 'ni', 'py', 'na', 'cmod', 'conc_unclear', 'seek', 'qfair']);
 const wrap = (t, n) => { const w = String(t).split(/\s+/), out = []; let cur = ''; for (const x of w) { if ((cur + ' ' + x).trim().length > n && cur) { out.push(cur); cur = x; } else cur = (cur + ' ' + x).trim(); } if (cur) out.push(cur); return out; };
 // colores y símbolos de RevMan (verde +, amarillo ?, rojo −); los niveles extra de ROBINS-I/E mantienen símbolos propios
-const RM = { low: ['#6CC24A', '+'], lowc: ['#6CC24A', '+'], some: ['#FBEE5C', '?'], unclear: ['#FBEE5C', '?'], ni: ['#FBEE5C', '?'], moderate: ['#FBEE5C', '?'], high: ['#C4402C', '−'], serious: ['#F28C28', '×'], critical: ['#8B1A1A', '!'], vhigh: ['#8B1A1A', '!'] };
+const RM = { low: ['#6CC24A', '+'], lowc: ['#6CC24A', '+'], some: ['#FBEE5C', '?'], unclear: ['#FBEE5C', '?'], ni: ['#FBEE5C', '?'], moderate: ['#FBEE5C', '?'], high: ['#C4402C', '−'], serious: ['#F28C28', '×'], critical: ['#B3261E', '!'], vhigh: ['#B3261E', '!'] };
 export const look = (l, st) => { const d = LV[l]; if (!d) return null; const r = st === 'revman' && RM[l]; return { c: r ? r[0] : d.c, s: r ? r[1] : d.s, t: LVEN[l] || d.t, ink: st === 'revman' ? '#000000' : (dark.has(l) ? '#1B1B1B' : '#FFFFFF') }; };
 const dom = id => /^D\d+$/.test(String(id));
 const letter = i => String.fromCharCode(65 + i);

@@ -1,6 +1,6 @@
 // Instrumentos adicionales: ROBINS-E (2024), RoB 1 (Cochrane 2011), lista JBI de prevalencia y Newcastle-Ottawa (cohortes).
 // Los algoritmos de ROBINS-E transcriben los diagramas de flujo de la guía oficial (versión 24 de marzo de 2024).
-import { register, O5, isY, isN, J, Pending } from './instruments.js?v=2026.10.25-3';
+import { register, O5, isY, isN, J, Pending } from './instruments.js?v=2026.10.25-4';
 
 const inn = (v, ...xs) => xs.includes(v), O4 = ['Y', 'PY', 'PN', 'N'], OW = ['Y', 'PY', 'WN', 'SN', 'NI'], OSW = ['SY', 'WY', 'PN', 'N', 'NI'];
 const q = (id, n, text, opts, h, show) => ({ id, n, q: text, opts, h, show });
