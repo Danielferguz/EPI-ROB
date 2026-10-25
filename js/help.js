@@ -4,7 +4,7 @@ export const GUIDE_HTML = `
   <div class="howto"><div><b>Qué se hace</b>Se juzga si el diseño, la conducción o el análisis de un estudio pudieron distorsionar su resultado. Cada instrumento organiza el juicio en <i>dominios</i> y <i>preguntas señalizadoras</i>.</div><div><b>Para qué</b>Ponderar la confianza en la evidencia (GRADE), decidir análisis de sensibilidad en un metaanálisis y cumplir PRISMA 2020.</div><div><b>Cómo interpretar</b>El juicio es de un <i>resultado</i> concreto (RoB 2, ROBINS-I) o del estudio/modelo/revisión (QUADAS-2, PROBAST, AMSTAR 2). Es una descripción de riesgo, no una puntuación: no sume dominios.</div></div>
   <h3>Cómo trabaja EPI-ROB</h3>
   <ol><li><b>Elija el instrumento</b> según el diseño del estudio (tarjetas de abajo) y añada los estudios.</li><li><b>Responda las preguntas señalizadoras</b>: Sí, Probablemente sí, Probablemente no, No o Sin información. Cada pregunta trae una nota breve de ayuda.</li><li><b>Revise el juicio propuesto</b> por el algoritmo oficial (RoB 2, QUADAS-2, PROBAST, AMSTAR 2). Puede cambiarlo, pero debe justificarlo con una cita del estudio.</li><li><b>Dos revisores</b> (opcional): cada uno evalúa por separado; el programa calcula el acuerdo y el kappa y le ayuda a registrar el consenso.</li><li><b>Figuras</b>: semáforo y barras de resumen listos para la revista (SVG, PNG, TIFF), texto de métodos y exportación compatible con <i>robvis</i>.</li></ol>
-  <div class="warn">Los algoritmos <b>proponen</b> un juicio; la decisión final y su justificación son del evaluador. ROBINS-I no publica algoritmo en su versión 1: allí el juicio es siempre suyo.</div>
+  <div class="warn">Los algoritmos <b>proponen</b> un juicio; la decisión final y su justificación son del evaluador. ROBINS-I (v1) y RoB 1 no publican algoritmo: allí el juicio es siempre suyo. ROBINS-I V2 sí tiene algoritmos.</div>
 </div>`;
 export const HELP_HTML = `
 <h2>Ayuda</h2>
@@ -12,6 +12,7 @@ export const HELP_HTML = `
 <ul>
 <li><b>RoB 2</b> (ensayos aleatorizados): cinco dominios, algoritmos de la guía oficial de 2019 para el efecto de la asignación y el de adherirse.</li>
 <li><b>RoB 1</b> (herramienta Cochrane de 2011): siete dominios con juicio bajo, alto o poco claro y criterios con ejemplos.</li>
+<li><b>ROBINS-I V2</b> (cohortes; borrador de noviembre de 2025): parte B (cuándo detener la evaluación), C4 (efecto por intención de tratar o por protocolo) y seis dominios con algoritmos transcritos de los diagramas oficiales (juicios bajo salvo confusión, moderado, serio, crítico).</li>
 <li><b>ROBINS-I</b> (no aleatorizados, v1): siete dominios con preguntas señalizadoras y juicio del evaluador (bajo, moderado, serio, crítico, sin información).</li>
 <li><b>ROBINS-E</b> (exposiciones; versión de 24 de marzo de 2024): sección preliminar B (puede detener la evaluación), variantes de los dominios 1 y 2 según C5–C8, escala de cuatro niveles y los algoritmos de los diagramas de flujo oficiales.</li>
 <li><b>QUADAS-2</b> (exactitud diagnóstica): cuatro dominios y aplicabilidad.</li>
@@ -20,7 +21,7 @@ export const HELP_HTML = `
 <li><b>JBI · estudios de prevalencia</b>: 9 ítems (sí, no, poco claro, no aplica) con decisión de incluir, buscar más información o excluir según umbrales configurables; el JBI no fija puntos de corte.</li>
 <li><b>Newcastle-Ottawa (cohortes)</b>: estrellas por selección, comparabilidad y desenlace, y calidad buena, regular o pobre con los umbrales AHRQ.</li>
 </ul>
-<p>No incluidos: RoB 2 para ensayos por conglomerados o cruzados, la versión de casos y controles de NOS y ROBINS-I v2. Si los necesita, use las plantillas oficiales en <a href="https://www.riskofbias.info">riskofbias.info</a> y cargue los juicios con «Importar juicios (CSV)».</p>
+<p>No incluidos: RoB 2 para ensayos por conglomerados o cruzados, la versión de casos y controles de NOS y ROBINS-I V2 para estudios no de seguimiento (casos y controles, series). Si los necesita, use las plantillas oficiales en <a href="https://www.riskofbias.info">riskofbias.info</a> y cargue los juicios con «Importar juicios (CSV)».</p>
 <h3>Guía de cada juicio y ejemplos</h3>
 <p>En cada dominio (o ítem) encontrará «¿Cuándo corresponde cada juicio? Casos de ejemplo»: una tabla que dice qué situaciones justifican cada opción, con un caso breve. En el paso 1, cada instrumento ofrece <b>varios ejemplos con estudios ficticios</b>; el sustento de cada dominio ya viene escrito para que compare su razonamiento.</p>
 <h3>Respuestas y juicios</h3>
@@ -37,6 +38,7 @@ export const HELP_HTML = `
 <ul>
 <li>Sterne JAC et al. RoB 2. <i>BMJ</i> 2019;366:l4898. Higgins JPT et al. (eds). RoB 2 guidance for parallel trials, 2019.</li>
 <li>Sterne JAC et al. ROBINS-I. <i>BMJ</i> 2016;355:i4919.</li>
+<li>Sterne JAC, Mathur MB, Elbers R, et al. ROBINS-I V2 (for follow-up studies), 20 nov 2025 (borrador), www.riskofbias.info (CC BY-NC-ND 4.0).</li>
 <li>Whiting PF et al. QUADAS-2. <i>Ann Intern Med</i> 2011;155:529–36.</li>
 <li>Wolff RF et al. PROBAST. <i>Ann Intern Med</i> 2019;170:51–58.</li>
 <li>Shea BJ et al. AMSTAR 2. <i>BMJ</i> 2017;358:j4008.</li>

@@ -1,16 +1,18 @@
 // Ejemplos didácticos con estudios FICTICIOS (no corresponden a publicaciones reales). Cada instrumento tiene varios escenarios;
 // el perfil de cada estudio (una letra por dominio) genera las respuestas, y el sustento de cada dominio se toma de la guía (guides.js).
-import { ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2 } from './instruments.js?v=2026.10.24-2';
-import { ROBINS_E, ROB1, JBI, NOS, JBI_ITEMS, NOS_ITEMS } from './instruments2.js?v=2026.10.24-2';
-import { newStudy } from './store.js?v=2026.10.24-2';
-import { GUIDES } from './guides.js?v=2026.10.24-2';
+import { ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2 } from './instruments.js?v=2026.10.25-1';
+import { ROBINS_E, ROB1, JBI, NOS, JBI_ITEMS, NOS_ITEMS } from './instruments2.js?v=2026.10.25-1';
+import { ROBINS_I2 } from './instruments3.js?v=2026.10.25-1';
+import { newStudy } from './store.js?v=2026.10.25-1';
+import { GUIDES } from './guides.js?v=2026.10.25-1';
 
-const LVL = { rob2: { L: 'low', S: 'some', H: 'high' }, 'robins-i': { L: 'low', M: 'moderate', S: 'serious', C: 'critical', N: 'ni' }, quadas2: { L: 'low', H: 'high', U: 'unclear' }, probast: { L: 'low', H: 'high', U: 'unclear' }, 'robins-e': { L: 'low', S: 'some', H: 'high', V: 'vhigh' }, rob1: { L: 'low', H: 'high', U: 'unclear' } };
+const LVL = { rob2: { L: 'low', S: 'some', H: 'high' }, 'robins-i': { L: 'low', M: 'moderate', S: 'serious', C: 'critical', N: 'ni' }, quadas2: { L: 'low', H: 'high', U: 'unclear' }, probast: { L: 'low', H: 'high', U: 'unclear' }, 'robins-e': { L: 'low', S: 'some', H: 'high', V: 'vhigh' }, 'robins-i2': { L: 'low', M: 'moderate', S: 'serious', C: 'critical' }, rob1: { L: 'low', H: 'high', U: 'unclear' } };
+const lowc = (key, k, c) => (key === 'robins-e' || key === 'robins-i2') && k === 0 && c === 'L';
 const note = (guide, d, lv) => GUIDES[guide][d]?.[lv]?.e || '';
 const fill = (inst, key, name, code, ans, meta = {}, extra = {}) => {
   const s = newStudy(inst.id, `${name} (ejemplo ficticio)`, meta), jud = {};
-  [...code].forEach((c, k) => { const d = `D${k + 1}`, lv = LVL[key][c]; jud[d] = { note: note(key, d, key === 'robins-e' && k === 0 && c === 'L' ? 'lowc' : lv), ...(extra.sel ? { sel: lv === 'low' && key === 'robins-e' && k === 0 ? 'lowc' : lv } : {}), ...(extra.app?.[k] ? { app: extra.app[k] } : {}) }; });
-  s.asm.A = { ans, jud }; s.vignette = [...code].map((c, k) => `D${k + 1}: ${note(key, `D${k + 1}`, key === 'robins-e' && k === 0 && c === 'L' ? 'lowc' : LVL[key][c])}`).join(' ');
+  [...code].forEach((c, k) => { const d = `D${k + 1}`, lv = LVL[key][c]; jud[d] = { note: note(key, d, lowc(key, k, c) ? 'lowc' : lv), ...(extra.sel ? { sel: lowc(key, k, c) ? 'lowc' : lv } : {}), ...(extra.app?.[k] ? { app: extra.app[k] } : {}) }; });
+  s.asm.A = { ans, jud }; s.vignette = [...code].map((c, k) => `D${k + 1}: ${note(key, `D${k + 1}`, lowc(key, k, c) ? 'lowc' : LVL[key][c])}`).join(' ');
   return s;
 };
 const worst = (code, order) => order.find(l => [...code].some(c => c === l)) || order.at(-1);
@@ -49,6 +51,18 @@ const RE = {
 };
 const robinsESet = (id, title, desc, list) => ex(id, title, desc, () => ({ inst: ROBINS_E, expect: list.map(([, c, meta]) => (meta?.b3 === 'Y' ? 'vhigh' : ({ V: 'vhigh', H: 'high', S: 'some', L: 'lowc' }[worst(c, ['V', 'H', 'S', 'L'])]))), studies: list.map(([n, c, meta]) => fill(ROBINS_E, 'robins-e', n, c, Object.assign({}, ...[...c].map((x, k) => RE[`D${k + 1}`][x])), { result: 'HR por incremento de exposición', exposure: 'Exposición ambiental modelada', confs: 'edad, sexo, tabaco, nivel socioeconómico', ...meta })) }));
 
+// ---------------------------------------------------------------- ROBINS-I V2 (seis dominios; D1 depende de C4)
+const RI2 = {
+  D1a: { L: { '1a.1': 'Y', '1a.2': 'Y', '1a.3': 'N', '1a.4': 'N' }, M: { '1a.1': 'WN', '1a.2': 'Y', '1a.3': 'N', '1a.4': 'N' }, S: { '1a.1': 'SN', '1a.4': 'N' }, C: { '1a.1': 'SN', '1a.4': 'Y' } },
+  D1b: { L: { '1b.1': 'Y', '1b.2': 'Y', '1b.3': 'Y', '1b.5': 'N' }, M: { '1b.1': 'Y', '1b.2': 'WN', '1b.3': 'Y', '1b.5': 'N' }, S: { '1b.1': 'N', '1b.4': 'N', '1b.5': 'N' }, C: { '1b.1': 'N', '1b.4': 'Y' } },
+  D2: { L: { '2.1': 'Y', '2.4': 'N', '2.5': 'N' }, M: { '2.1': 'Y', '2.4': 'N', '2.5': 'Y' }, S: { '2.1': 'N', '2.2': 'N', '2.3': 'N', '2.4': 'N', '2.5': 'N' }, C: { '2.1': 'N', '2.2': 'N', '2.3': 'N', '2.4': 'SY' } },
+  D3: { L: { '3.1': 'Y', '3.2': 'N', '3.3': 'N' }, M: { '3.1': 'WN', '3.3': 'N' }, S: { '3.1': 'SN', '3.3': 'N', '3.6': 'N', '3.7': 'N', '3.8': 'N' }, C: { '3.1': 'SN', '3.3': 'N', '3.6': 'N', '3.7': 'N', '3.8': 'Y' } },
+  D4: { L: { '4.1': 'Y', '4.2': 'Y', '4.3': 'Y' }, M: { '4.1': 'Y', '4.2': 'N', '4.3': 'Y', '4.4': 'Y', '4.5': 'Y', '4.6': 'Y', '4.11': 'N' }, S: { '4.1': 'Y', '4.2': 'N', '4.3': 'Y', '4.4': 'Y', '4.5': 'Y', '4.6': 'WN', '4.11': 'N' }, C: { '4.1': 'Y', '4.2': 'N', '4.3': 'Y', '4.4': 'Y', '4.5': 'Y', '4.6': 'SN', '4.11': 'N' } },
+  D5: { L: { '5.1': 'N', '5.2': 'N' }, M: { '5.1': 'N', '5.2': 'Y', '5.3': 'WY' }, S: { '5.1': 'Y' } },
+  D6: { L: { '6.1': 'Y' }, M: { '6.1': 'N', '6.2': 'N', '6.3': 'NI', '6.4': 'N' }, S: { '6.1': 'N', '6.2': 'Y', '6.3': 'N', '6.4': 'N' }, C: { '6.1': 'N', '6.2': 'Y', '6.3': 'Y', '6.4': 'N' } },
+};
+const robinsI2Set = (id, title, desc, list) => ex(id, title, desc, () => ({ inst: ROBINS_I2, expect: list.map(([, c, , meta]) => (meta?.b3 === 'Y' ? 'critical' : { C: 'critical', S: 'serious', M: 'moderate', L: 'lowc' }[worst(c, ['C', 'S', 'M', 'L'])])), studies: list.map(([n, c, res, meta]) => fill(ROBINS_I2, 'robins-i2', n, c, Object.assign({}, ...[...c].map((x, k) => RI2[k === 0 ? (meta?.c4 === 'Y' ? 'D1b' : 'D1a') : `D${k + 1}`][x])), { result: res, cmp: 'intervención vs comparador', conf: 'edad, sexo, comorbilidad, gravedad basal', c4: 'N', b1: 'Y', b3: 'N', ...meta })) }));
+
 // ---------------------------------------------------------------- RoB 1
 const rob1Set = (id, title, desc, list) => ex(id, title, desc, () => ({ inst: ROB1, expect: list.map(([, c]) => ({ H: 'high', U: 'unclear', L: 'low' }[worst(c, ['H', 'U', 'L'])])), studies: list.map(([n, c]) => fill(ROB1, 'rob1', n, c, {}, { note: 'Desenlace principal' }, { sel: true })) }));
 
@@ -79,6 +93,11 @@ export const EXAMPLES = {
   'robins-i': [
     robinsISet('estatinas', 'Estatinas y demencia (cohortes)', 'Cuatro cohortes con juicios de dominio distintos; el global sale de la regla del instrumento.', [['Gómez 2020', 'MLLLLLL', 'HR 0,78'], ['Herrera 2019', 'SMLLMLM', 'HR 0,62'], ['Ibáñez 2018', 'CSMMSMS', 'HR 0,40'], ['Jiménez 2021', 'MNLLNML', 'HR 0,85']]),
     robinsISet('cirugia', 'Cirugía frente a tratamiento médico', 'Comparaciones no aleatorizadas donde la gravedad determina la intervención.', [['Klein 2017', 'SMMLMMM', 'OR 0,55'], ['Luna 2018', 'MLLMLLL', 'OR 0,70'], ['Mora 2019', 'CSSMMSM', 'OR 0,30']]),
+  ],
+  'robins-i2': [
+    robinsI2Set('estatinas2', 'Estatinas y demencia (cohortes de nuevos usuarios)', 'Efecto de la asignación (por intención de tratar): del estudio con control impecable al que combina confusión grave y selección por usuarios prevalentes.', [['Gómez 2022', 'LLLLLL', 'HR 0,80 (IC 95 % 0,70–0,92)'], ['Herrera 2021', 'MLMLLM', 'HR 0,70 (IC 95 % 0,58–0,85)'], ['Ibáñez 2020', 'SMSMSM', 'HR 0,55 (IC 95 % 0,40–0,76)'], ['Jiménez 2019', 'CSSSSC', 'HR 0,30 (IC 95 % 0,18–0,50)']]),
+    robinsI2Set('emulacion', 'Emulación de ensayo con efecto por protocolo', 'La variante B del dominio 1 exige métodos G para la confusión tiempo-dependiente (C4 = Sí).', [['Klein 2023', 'LLLLLL', 'HR 0,78', { c4: 'Y' }], ['Luna 2022', 'MLMLMM', 'HR 0,85', { c4: 'Y' }], ['Mora 2021', 'SLLMLL', 'HR 0,60', { c4: 'Y' }], ['Núñez 2020', 'CMSLLM', 'HR 0,45', { c4: 'Y' }]]),
+    robinsI2Set('parteb', 'Parte B: cuando no hace falta seguir', 'Resultados sin ningún intento de control de la confusión o con un método de medida inapropiado: riesgo crítico directo.', [['Ortiz 2018', 'LLLLLL', 'HR 0,90'], ['Paz 2017', 'CMLLLL', 'RR 0,40 (sin ajustar)', { b1: 'N', b2: 'Y' }], ['Quispe 2016', 'LLLLSL', 'RR 0,70 (escala no validada)', { b3: 'Y' }]]),
   ],
   quadas2: [
     quadasSet('dimerod', 'Dímero D y trombosis venosa profunda', 'Estudios de exactitud diagnóstica en urgencias.', { index: 'Dímero D', ref: 'Ecografía venosa', target: 'TVP' }, [['Ortiz 2022', 'LLLL'], ['Chen 2020', 'HLLL'], ['Paredes 2023', 'LULL'], ['Quiroga 2019', 'LLHL'], ['Rojas 2021', 'ULUU']]),

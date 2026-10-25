@@ -1,6 +1,7 @@
 // Validación de los algoritmos: se enumeran TODAS las combinaciones de respuestas de cada dominio de RoB 2 y se comparan con las tablas
 // oficiales de la guía (Higgins et al., 22 ago 2019: tablas 1, 4, 6, 8, 10, 12 y 14) transcritas como filas independientes del código.
-import { ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2, evalAssessment, amItem, amOverall, O5 } from '../js/instruments.js';
+import { ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2, evalAssessment, amItem, amOverall, visibleItems, O5 } from '../js/instruments.js';
+import { ROBINS_I2 } from '../js/instruments3.js';
 import { kappa, robvisCSV, fromRobvisRows, newProject, newStudy, agreement, parseProject } from '../js/store.js';
 import { parseCSV } from '../js/io.js';
 import { ROBINS_E, ROB1, JBI, NOS, nosQuality } from '../js/instruments2.js';
@@ -184,6 +185,86 @@ function INSTRUMENTS_BY_ID(id) { return EXAMPLES[id][0].make().inst; }
   const pn = newProject('nos-cohort'); pn.twoRev = true; pn.studies = EXAMPLES['nos-cohort'][0].make().studies; pn.studies.forEach(s => (s.asm.B = JSON.parse(JSON.stringify(s.asm.A)))); ok('concordancia con NOS y JBI no falla', agreement(pn).length === 4 && agreement({ ...pn, inst: 'jbi-prev', studies: EXAMPLES['jbi-prev'][0].make().studies.map(s => ({ ...s, asm: { A: s.asm.A, B: s.asm.A, C: {} } })) }).length === 10); }
 // serialización
 { const p = newProject('quadas2'); p.studies = EXAMPLES.quadas2[0].make().studies; const q = parseProject(JSON.stringify(p)); ok('proyecto JSON: ida y vuelta', q.studies.length === p.studies.length && q.inst === 'quadas2'); }
+
+
+// ROBINS-I V2: cada dominio se recorre como grafo transcrito de los diagramas de flujo de la guía oficial (20 nov. 2025);
+// se enumeran TODOS los caminos y respuestas posibles, y se comprueba que el algoritmo propone el juicio del diagrama
+// y que toda pregunta respondida en el camino está visible (el algoritmo no exige más respuestas que las del camino).
+{
+  const G = {
+    D1a: { s: '1.1', N: {
+      '1.1': ['1a.1', [[['Y', 'PY'], '1.3a'], [['WN'], '1.3b'], [['SN', 'NI'], '1.4s']]],
+      '1.3a': ['1a.3', [[['N', 'PN', 'NI'], '1.2a'], [['Y', 'PY'], '1.4c']]], '1.3b': ['1a.3', [[['N', 'PN', 'NI'], '1.2b'], [['Y', 'PY'], '1.4c']]],
+      '1.2a': ['1a.2', [[['Y', 'PY'], '1.4L'], [['WN'], '1.4M'], [['SN', 'NI'], '=serious']]], '1.2b': ['1a.2', [[['Y', 'PY', 'WN'], '1.4M'], [['SN', 'NI'], '=serious']]],
+      '1.4L': ['1a.4', [[['N', 'PN'], '=lowc'], [['Y', 'PY'], '=serious']]], '1.4M': ['1a.4', [[['N', 'PN'], '=moderate'], [['Y', 'PY'], '=serious']]],
+      '1.4c': ['1a.4', [[['Y', 'PY'], '=critical'], [['N', 'PN'], '1.2c']]], '1.2c': ['1a.2', [[['Y', 'PY'], '=serious'], [['SN', 'WN', 'NI'], '=critical']]],
+      '1.4s': ['1a.4', [[['N', 'PN'], '=serious'], [['Y', 'PY'], '=critical']]] } },
+    D1b: { s: 'b1', c4: 'Y', N: {
+      b1: ['1b.1', [[['Y', 'PY'], 'b2'], [['N', 'PN', 'NI'], 'b4']]], b2: ['1b.2', [[['Y', 'PY'], 'b3a'], [['WN'], 'b3b'], [['SN', 'NI'], '=serious']]],
+      b3a: ['1b.3', [[['Y', 'PY'], 'b5L'], [['WN'], 'b5M'], [['SN', 'NI'], '=serious']]], b3b: ['1b.3', [[['Y', 'PY', 'WN'], 'b5M'], [['SN', 'NI'], '=serious']]],
+      b5L: ['1b.5', [[['N', 'PN'], '=lowc'], [['Y', 'PY'], '=serious']]], b5M: ['1b.5', [[['N', 'PN'], '=moderate'], [['Y', 'PY'], '=serious']]],
+      b4: ['1b.4', [[['Y', 'PY'], '=critical'], [['N', 'PN', 'NI'], 'b5B']]], b5B: ['1b.5', [[['N', 'PN'], '=serious'], [['Y', 'PY'], '=critical']]] } },
+    D2: { s: 'a', N: {
+      a: ['2.1', [[['Y', 'PY'], 't'], [['N', 'PN', 'NI'], 'b']]], b: ['2.2', [[['Y', 'PY'], 't'], [['N', 'PN', 'NI'], 'c']]],
+      c: ['2.3', [[['SY'], 't'], [['WY', 'NI'], 'm'], [['N', 'PN'], 'u']]],
+      t: ['2.4', [[['N', 'PN'], 't5'], [['WY', 'NI'], 'm5'], [['SY'], 'u5']]], m: ['2.4', [[['N', 'PN'], 'm5'], [['WY', 'NI'], 'u5'], [['SY'], '=critical']]], u: ['2.4', [[['N', 'PN'], 'u5'], [['SY', 'WY', 'NI'], '=critical']]],
+      t5: ['2.5', [[['N', 'PN'], '=low'], [['Y', 'PY', 'NI'], '=moderate']]], m5: ['2.5', [[['N', 'PN'], '=moderate'], [['Y', 'PY', 'NI'], '=serious']]], u5: ['2.5', [[['N', 'PN'], '=serious'], [['Y', 'PY', 'NI'], '=critical']]] } },
+    D4: { s: 'c', pre: [{ '4.1': 'Y', '4.2': 'N', '4.3': 'Y' }, { '4.1': 'NI', '4.2': 'Y', '4.3': 'Y' }, { '4.1': 'PN', '4.2': 'PN', '4.3': 'PN' }], N: {
+      c: ['4.4', [[['Y', 'PY', 'NI'], 'e'], [['N', 'PN'], 'i']]], e: ['4.5', [[['N', 'PN'], '=low'], [['Y', 'PY', 'NI'], 'x']]], x: ['4.6', [[['Y', 'PY'], 'Lt'], [['WN', 'NI'], 'Lm'], [['SN'], 'Lb']]],
+      Lt: ['4.11', [[['Y', 'PY'], '=low'], [['N', 'PN'], '=moderate']]], Lm: ['4.11', [[['Y', 'PY'], '=moderate'], [['N', 'PN'], '=serious']]], Lb: ['4.11', [[['Y', 'PY'], '=serious'], [['N', 'PN'], '=critical']]],
+      i: ['4.7', [[['Y', 'PY'], 'j'], [['N', 'PN', 'NI'], 'k']]], j: ['4.8', [[['N', 'PN', 'NI'], '=serious'], [['Y', 'PY'], 'l']]],
+      l: ['4.9', [[['Y', 'PY'], '=low'], [['WN', 'NI'], 'Lm'], [['SN'], 'Lb']]], k: ['4.10', [[['Y', 'PY'], '=low'], [['WN', 'NI'], 'Lm'], [['SN'], 'Lb']]] } },
+    D5: { s: 'a', N: {
+      a: ['5.1', [[['Y', 'PY'], '=serious'], [['N', 'PN'], 'b1'], [['NI'], 'b2']]],
+      b1: ['5.2', [[['N', 'PN'], '=low'], [['Y', 'PY', 'NI'], 'c1']]], c1: ['5.3', [[['N', 'PN'], '=low'], [['WY', 'NI'], '=moderate'], [['SY'], '=serious']]],
+      b2: ['5.2', [[['N', 'PN'], '=moderate'], [['Y', 'PY', 'NI'], 'c2']]], c2: ['5.3', [[['SY'], '=serious'], [['WY', 'N', 'PN', 'NI'], '=moderate']]] } },
+  };
+  const walk = (g, meta, pre, dom) => {
+    let n = 0, bad = [];
+    const rec = (node, ans) => {
+      if (node.startsWith('=')) {
+        const e = evalAssessment(ROBINS_I2, meta, { ans }), d = e.doms.find(x => x.id === dom), want = node.slice(1);
+        const vis = visibleItems(ROBINS_I2.doms(meta).find(x => x.id === dom), ans, meta).map(i => i.id).sort().join(), got = Object.keys(ans).sort().join();
+        n++; if (d.sug !== want || !Object.keys(ans).every(k => vis.split(',').includes(k))) bad.push(`${JSON.stringify(ans)} → ${d.sug} (esperado ${want}); visibles ${vis} / respondidas ${got}`);
+        return;
+      }
+      const [q, edges] = g.N[node], it = ROBINS_I2.doms(meta).find(x => x.id === dom).items.find(i => i.id === q);
+      for (const o of it.opts) { const ed = edges.find(([os]) => os.includes(o)); if (!ed) { bad.push(`opción ${o} de ${q} sin arista`); continue; } rec(ed[1], { ...ans, [q]: o }); }
+    };
+    for (const p of pre) rec(g.s, { ...p });
+    return { n, bad };
+  };
+  for (const [k, g] of Object.entries(G)) {
+    const dom = k.startsWith('D1') ? 'D1' : k, meta = { c4: g.c4 || 'N', b1: 'Y', b3: 'N' }, r = walk(g, meta, g.pre || [{}], dom);
+    ok(`ROBINS-I V2 ${k}: ${r.n} caminos de respuestas coinciden con el diagrama`, !r.bad.length && r.n > 0, r.bad.slice(0, 3).join(' | '));
+  }
+  // dominio 4: todo Y/PY en 4.1–4.3 → bajo sin más preguntas
+  ok('ROBINS-I V2 D4: datos completos → bajo', evalAssessment(ROBINS_I2, { c4: 'N' }, { ans: { '4.1': 'Y', '4.2': 'PY', '4.3': 'Y' } }).doms[3].sug === 'low');
+  // dominio 3: partes A y B (peor de las dos) y preguntas 3.6–3.8
+  const A = [['Y', 'N', 'low'], ['Y', 'Y', 'moderate'], ['PY', 'NI', 'low'], ['WN', null, 'moderate'], ['NI', null, 'moderate'], ['SN', null, 'serious']];
+  const B = [[{ '3.3': 'N' }, 'low'], [{ '3.3': 'NI' }, 'moderate'], [{ '3.3': 'Y', '3.4': 'N' }, 'low'], [{ '3.3': 'Y', '3.4': 'NI' }, 'moderate'], [{ '3.3': 'Y', '3.4': 'Y', '3.5': 'N' }, 'moderate'], [{ '3.3': 'Y', '3.4': 'PY', '3.5': 'NI' }, 'moderate'], [{ '3.3': 'Y', '3.4': 'Y', '3.5': 'Y' }, 'serious']];
+  const rank = { low: 0, moderate: 1, serious: 2 }; let n3 = 0, bad3 = [];
+  for (const [a1, a2, la] of A) for (const [b, lb] of B) {
+    const base = { '3.1': a1, ...(a2 ? { '3.2': a2 } : {}), ...b }, worst = Object.keys(rank).find(k => rank[k] === Math.max(rank[la], rank[lb]));
+    const cases = worst === 'serious' ? [[{ '3.6': 'Y' }, 'moderate'], [{ '3.6': 'N', '3.7': 'PY' }, 'moderate'], [{ '3.6': 'PN', '3.7': 'NI', '3.8': 'N' }, 'serious'], [{ '3.6': 'NI', '3.7': 'N', '3.8': 'Y' }, 'critical']] : [[{}, worst]];
+    for (const [x, want] of cases) { const ans = { ...base, ...x }, e = evalAssessment(ROBINS_I2, { c4: 'N' }, { ans }).doms.find(d => d.id === 'D3'); n3++; if (e.sug !== want) bad3.push(`${JSON.stringify(ans)} → ${e.sug} (${want})`); }
+  }
+  ok(`ROBINS-I V2 D3: ${n3} combinaciones de las partes A y B y preguntas 3.6–3.8`, !bad3.length, bad3.slice(0, 3).join(' | '));
+  // dominio 6: cuenta de «Sí» en 6.2–6.4
+  let n6 = 0, bad6 = [];
+  for (const a of ['Y', 'PY', 'N', 'PN', 'NI']) for (const b of ['Y', 'N', 'NI']) for (const c of ['Y', 'N', 'NI']) {
+    const v = [a, b, c], ans = { '6.1': 'N', '6.2': a, '6.3': b, '6.4': c }, ny = v.filter(x => x === 'Y' || x === 'PY').length, ni = v.filter(x => x === 'NI').length;
+    const want = ny >= 2 ? 'critical' : ny === 1 || ni === 3 ? 'serious' : ni ? 'moderate' : 'low', got = evalAssessment(ROBINS_I2, { c4: 'N' }, { ans }).doms[5].sug; n6++; if (got !== want) bad6.push(`${v} → ${got} (${want})`);
+  }
+  ok(`ROBINS-I V2 D6: ${n6} combinaciones de 6.2–6.4`, !bad6.length, bad6.slice(0, 3).join(' | '));
+  ok('ROBINS-I V2 D6: 6.1 Sí → bajo sin más preguntas', evalAssessment(ROBINS_I2, { c4: 'N' }, { ans: { '6.1': 'PY' } }).doms[5].sug === 'low');
+  // global: peor dominio (D1 «bajo salvo confusión» si todo es bajo); parte B detiene la evaluación
+  const m0 = { c4: 'N', b1: 'Y', b3: 'N' };
+  ok('ROBINS-I V2 global: todo bajo → «bajo salvo confusión»', ROBINS_I2.overall(['lowc', 'low', 'low', 'low', 'low', 'low'], m0).j === 'lowc');
+  ok('ROBINS-I V2 global: peor dominio', ROBINS_I2.overall(['lowc', 'moderate', 'low', 'serious', 'low', 'moderate'], m0).j === 'serious' && ROBINS_I2.overall(['moderate', 'low', 'low', 'low', 'low', 'low'], m0).j === 'moderate' && ROBINS_I2.overall(['lowc', 'low', 'critical', 'low', 'low', 'serious'], m0).j === 'critical');
+  ok('ROBINS-I V2 B2/B3 detienen la evaluación (crítico)', ROBINS_I2.overall([], { ...m0, b1: 'N', b2: 'Y' }).j === 'critical' && ROBINS_I2.overall([], { ...m0, b3: 'PY' }).j === 'critical' && ROBINS_I2.stop({ ...m0, b1: 'Y', b2: 'Y' }) === null);
+  ok('ROBINS-I V2: C4 = Sí cambia la variante del dominio 1', ROBINS_I2.doms({ c4: 'Y' })[0].items[0].id === '1b.1' && ROBINS_I2.doms({ c4: 'N' })[0].items[0].id === '1a.1' && ROBINS_I2.doms(m0).length === 6);
+}
 
 console.log(fails ? `${fails} de ${checks} comprobaciones fallaron` : `${checks}/${checks} comprobaciones correctas`);
 process.exit(fails ? 1 : 0);

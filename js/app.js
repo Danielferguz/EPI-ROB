@@ -1,12 +1,12 @@
 // EPI-ROB · interfaz: guía, proyecto, evaluación guiada, concordancia y consenso, figuras y exportación.
-import { INSTRUMENTS, instOf, LV, ANS, defMeta, visibleItems } from './instruments.js?v=2026.10.24-2';
-import { GUIDES } from './guides.js?v=2026.10.24-2';
-import { newProject, newStudy, hasData, finalKey, evalStudy, finalStudy, load, save, parseProject, agreement, kappaLabel, robvisCSV, fromRobvisRows } from './store.js?v=2026.10.24-2';
-import { EXAMPLES } from './examples.js?v=2026.10.24-2';
-import { trafficLight, summaryBar } from './rplots.js?v=2026.10.24-2';
-import { figWrap, bindFigs } from './figs.js?v=2026.10.24-2';
-import { readFile, download } from './io.js?v=2026.10.24-2';
-import { HELP_HTML, GUIDE_HTML } from './help.js?v=2026.10.24-2';
+import { INSTRUMENTS, instOf, LV, ANS, defMeta, visibleItems } from './instruments.js?v=2026.10.25-1';
+import { GUIDES } from './guides.js?v=2026.10.25-1';
+import { newProject, newStudy, hasData, finalKey, evalStudy, finalStudy, load, save, parseProject, agreement, kappaLabel, robvisCSV, fromRobvisRows } from './store.js?v=2026.10.25-1';
+import { EXAMPLES } from './examples.js?v=2026.10.25-1';
+import { trafficLight, summaryBar } from './rplots.js?v=2026.10.25-1';
+import { figWrap, bindFigs, figSettings } from './figs.js?v=2026.10.25-1';
+import { readFile, download } from './io.js?v=2026.10.25-1';
+import { HELP_HTML, GUIDE_HTML } from './help.js?v=2026.10.25-1';
 
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -29,7 +29,11 @@ function showTab(t) {
 $$('.tabs button').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
 document.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) showTab(g.dataset.go); });
 $('#help').innerHTML = HELP_HTML;
-$('#fig-width').addEventListener('change', () => ($('#fig-mm').disabled = $('#fig-width').value !== 'custom')); $('#fig-mm').disabled = true;
+const figNote = () => { const st = figSettings(), svg = document.querySelector('#res-out svg.plot'), w = svg ? +svg.getAttribute('viewBox').split(/\s+/)[2] : 0, fs = svg ? +svg.dataset.fs : st.fs;
+  $('#fig-note').textContent = w ? (st.auto ? `Letra final ${st.pt} pt; el semáforo medirá ≈ ${Math.round(st.pt * 0.3528 * w / fs)} mm de ancho.` : `Con ${st.mm} mm de ancho, la letra del semáforo mide ≈ ${(fs * st.mm / w / 0.3528).toFixed(1)} pt${fs * st.mm / w / 0.3528 > 12 ? ' (grande: reduzca el tamaño de letra o use un ancho mayor)' : ''}.`) : ''; };
+['#fig-style', '#fig-fs'].forEach(id => $(id).addEventListener('change', () => { if (P?.studies?.length) renderResults(); figNote(); }));
+['#fig-pt', '#fig-mm', '#fig-width'].forEach(id => $(id).addEventListener('change', () => { $('#fig-mm').disabled = $('#fig-width').value !== 'custom'; $('#fig-pt').disabled = $('#fig-width').value !== 'auto'; figNote(); }));
+$('#fig-mm').disabled = true;
 
 // ---------------------------------------------------------------- 1. guía
 const GK = { 'jbi-prev': 'jbi', 'nos-cohort': 'nos' };
@@ -99,7 +103,7 @@ function renderEval() {
   box.innerHTML = `<div class="evalgrid"><aside class="card slist"><h3>${esc(cap(plu(I.unit)))}</h3>${P.studies.map(x => `<button class="sitem${x.id === s.id ? ' active' : ''}" data-sid="${x.id}"><span>${esc(x.name || '(sin nombre)')}</span><span class="lights">${lights(I, evalStudy(P, x, ui.who))}</span></button>`).join('')}</aside>
     <section class="evmain"><div class="card"><div class="row between wrap gap"><h2>${esc(s.name || 'Estudio')}</h2>${P.twoRev ? `<div class="who" role="tablist">${['A', 'B', 'C'].map(w => `<button class="${ui.who === w ? 'active' : ''}" data-who="${w}">${esc(P.names[w])}${hasData(s.asm[w]) ? '' : ' ○'}</button>`).join('')}</div>` : ''}</div>
       ${s.vignette ? `<details class="vign"><summary>Caso de ejemplo: qué dice cada dominio</summary><p>${esc(s.vignette)}</p></details>` : ''}
-      <div class="form meta"><label>Nombre<input data-name value="${esc(s.name)}"></label>${metaHtml(s)}</div>${stop ? `<div class="warn">${esc(`La sección preliminar (${stop}) indica riesgo muy alto: según ROBINS-E no se requiere seguir evaluando este resultado. Puede completar los dominios igualmente.`)}</div>` : ''}${P.twoRev && ui.who === 'C' ? '<p class="sub">Está editando el <b>consenso</b>: es el juicio que se usa en las figuras. Use el paso 4 para copiar desde cada revisor.</p>' : ''}${tabs ? `<div class="domnav" role="tablist">${tabs}</div>` : ''}</div>
+      <div class="form meta"><label>Nombre<input data-name value="${esc(s.name)}"></label>${metaHtml(s)}</div>${stop ? `<div class="warn">${esc(`La sección preliminar (${stop}) indica ${I.stopWord || 'riesgo muy alto'}: según el instrumento no se requiere seguir evaluando este resultado. Puede completar los dominios igualmente.`)}</div>` : ''}${P.twoRev && ui.who === 'C' ? '<p class="sub">Está editando el <b>consenso</b>: es el juicio que se usa en las figuras. Use el paso 4 para copiar desde cada revisor.</p>' : ''}${tabs ? `<div class="domnav" role="tablist">${tabs}</div>` : ''}</div>
     <div id="panel">${I.kind === 'amstar' ? amHtml(s, e) : I.kind === 'checklist' ? checkHtml(s, e) : I.kind === 'nos' ? nosHtml(s, e) : ui.dom === 'G' ? globalHtml(s, e) : domHtml(s, e)}</div></section></div>`;
 }
 const guideBox = (I, id) => { const t = guideRows(I, id); return t ? `<details class="gbox"><summary>¿Cuándo corresponde cada juicio? Casos de ejemplo</summary>${t}</details>` : ''; };
@@ -112,7 +116,7 @@ function domHtml(s, e) {
     <div class="algo ${r.sug ? '' : 'wait'}"><b>${I.hasAlgo ? 'Juicio propuesto por el algoritmo' : 'Juicio del evaluador'}</b> ${I.hasAlgo ? badge(r.sug) : ''}<p>${esc(r.why)}</p></div>
     <div class="form"><label>Su juicio${I.hasAlgo ? ' (vacío = usar la propuesta)' : ''}${levelSelect(I, lv, ds.sel, `data-sel="${d.id}"`)}</label>
     ${d.app ? `<label>Aplicabilidad (preocupación)<select data-app="${d.id}">${opt('', '— sin juzgar —', !ds.app)}${I.appLevels.map(l => opt(l, LV[l].t, ds.app === l)).join('')}</select></label>` : ''}
-    ${['rob2', 'robins-i', 'robins-e'].includes(I.id) ? `<label>Dirección probable del sesgo (opcional)<select data-dir="${d.id}">${['', 'Favorece al experimental', 'Favorece al comparador', 'Hacia la nulidad', 'Alejándose de la nulidad', 'Impredecible'].map(v => opt(v, v || '—', ds.dir === v)).join('')}</select></label>` : ''}
+    ${['rob2', 'robins-i', 'robins-i2', 'robins-e'].includes(I.id) ? `<label>Dirección probable del sesgo (opcional)<select data-dir="${d.id}">${['', 'Favorece al experimental', 'Favorece al comparador', 'Hacia la nulidad', 'Alejándose de la nulidad', 'Impredecible'].map(v => opt(v, v || '—', ds.dir === v)).join('')}</select></label>` : ''}
     <label class="wide">Sustento del juicio (cite el texto del estudio)${ov ? ' <b class="warnc">· su juicio difiere de la propuesta: justifíquelo</b>' : ''}<textarea data-note="${d.id}" rows="3" placeholder="p. ej., «La asignación se realizó por un sistema web centralizado» (p. 3)">${esc(ds.note || '')}</textarea></label></div>
     <div class="stepnav"><button class="ghost" data-nav="${i > 0 ? e.doms[i - 1].id : ''}"${i > 0 ? '' : ' disabled'}>← Anterior</button><button class="primary" data-nav="${i < e.doms.length - 1 ? e.doms[i + 1].id : 'G'}">${i < e.doms.length - 1 ? 'Siguiente →' : 'Juicio global →'}</button></div></div>`;
 }
@@ -197,12 +201,12 @@ function renderResults() {
   const { rows } = resultsData(), e0 = rows[0].e, custom = !!e0.cells, title = P.title || '';
   let cols, legend, legendOverall = null, sumCols, levelsAll;
   if (custom) { cols = e0.cols; legend = e0.legend; legendOverall = e0.legendOverall; sumCols = [...cols.map(c => ({ id: c.id, name: c.name })), { id: 'Global', name: 'Global' }]; levelsAll = legend; }
-  else { const first = P.studies[0].meta, ds = I.doms(first); cols = ds.map(d => ({ id: d.id, short: d.short })); legend = I.legend || I.levels; levelsAll = legend; sumCols = [...ds.map(d => ({ id: d.id, name: d.name })), { id: 'Global', name: 'Global' }]; }
+  else { const first = P.studies[0].meta, ds = I.doms(first); cols = ds.map(d => ({ id: d.id, short: d.short, name: d.name })); legend = I.legend || I.levels; levelsAll = legend; sumCols = [...ds.map(d => ({ id: d.id, name: d.name })), { id: 'Global', name: 'Global' }]; }
   const counts = {}; rows.forEach(r => { const w = ui.weighted ? r.s.weight : 1; (custom ? r.f.items : r.f.doms).forEach((c, i) => { const j = cj(c); if (!j) return; const id = sumCols[i].id; (counts[id] ||= {})[j] = (counts[id][j] || 0) + w; }); if (r.f.overall) (counts.Global ||= {})[r.f.overall] = (counts.Global[r.f.overall] || 0) + w; });
   const trows = rows.map(r => ({ name: r.s.name, js: custom ? r.f.items : r.f.doms, overall: r.f.overall }));
-  const tl = trafficLight(trows, cols, { title, legend, legendOverall });
-  const sbItems = summaryBar(sumCols.filter(c => c.id !== 'Global'), counts, levelsAll, { title: title ? `${title} · resumen` : 'Resumen', weighted: ui.weighted }), glob = custom ? legendOverall : levelsAll;
-  const sbGlobal = custom ? summaryBar([{ id: 'Global', name: 'Resultado global' }], counts, glob, { weighted: false }) : null;
+  const fg = figSettings(), tl = trafficLight(trows, cols, { title, legend, legendOverall, fs: fg.fs, st: fg.st });
+  const sbItems = summaryBar(sumCols.filter(c => c.id !== 'Global'), counts, levelsAll, { title: title ? `${title} · resumen` : 'Resumen', weighted: ui.weighted, fs: fg.fs, st: fg.st }), glob = custom ? legendOverall : levelsAll;
+  const sbGlobal = custom ? summaryBar([{ id: 'Global', name: 'Resultado global' }], counts, glob, { weighted: false, fs: fg.fs, st: fg.st }) : null;
   const nA = rows.length, g = rows.map(r => r.f.overall).filter(Boolean), gc = {}; g.forEach(j => (gc[j] = (gc[j] || 0) + 1));
   box.innerHTML = `<div class="card"><h2>Resultados y figuras</h2><div class="howto"><div><b>Qué se ve</b>El juicio final de cada ${esc(I.unit)} por ${custom ? 'ítem o categoría' : 'dominio'} (semáforo) y la proporción de cada nivel (barras).</div><div><b>Para qué</b>Cumplir los requisitos de informe (PRISMA 2020 ítem 18; Cochrane) y decidir si un análisis de sensibilidad excluye estudios de alto riesgo.</div><div><b>Cómo interpretar</b>El semáforo describe, no puntúa: no sume dominios ni promedie. Los estudios con alto riesgo en un dominio crítico son los candidatos a un análisis de sensibilidad.</div></div>
     <div class="row gap wrap"><label class="inline">Juicios de <select id="r-view">${opt('final', P.twoRev ? 'Final (consenso si existe)' : 'Final', ui.view === 'final')}${P.twoRev ? ['A', 'B', 'C'].map(w => opt(w, P.names[w], ui.view === w)).join('') : ''}</select></label>${custom && I.kind !== 'nos' ? '' : `<label class="inline"><input type="checkbox" id="r-w"${ui.weighted ? ' checked' : ''}> Ponderar barras por el peso del estudio</label>`}</div>
@@ -210,7 +214,7 @@ function renderResults() {
     <div class="plots single">${figWrap(tl, 'semaforo_riesgo_sesgo')}${figWrap(sbItems, 'resumen_riesgo_sesgo')}${sbGlobal ? figWrap(sbGlobal, 'resumen_global') : ''}</div>
     <h3>Tabla</h3><div class="tablewrap"><table class="data"><thead><tr><th>${esc(cap(I.unit))}</th>${cols.map(c => `<th title="${esc(c.name || c.id)}">${esc(c.short ?? c.id)}</th>`).join('')}<th>Global</th></tr></thead><tbody>${trows.map(r => `<tr><td>${esc(r.name)}</td>${[...r.js, r.overall].map(j => `<td>${j && typeof j === 'object' ? `${badge(j.j)} <small>${esc(j.t || '')}</small>` : badge(j)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     <div class="stepnav"><button class="ghost" data-go="consenso">← Concordancia</button><button class="primary" data-go="reporte">Siguiente: exportar →</button></div></div>`;
-  $('#r-view')?.addEventListener('change', e => { ui.view = e.target.value; renderResults(); }); $('#r-w')?.addEventListener('change', e => { ui.weighted = e.target.checked; renderResults(); }); bindFigs(box);
+  $('#r-view')?.addEventListener('change', e => { ui.view = e.target.value; renderResults(); }); $('#r-w')?.addEventListener('change', e => { ui.weighted = e.target.checked; renderResults(); }); bindFigs(box); figNote();
 }
 
 // ---------------------------------------------------------------- 6. exportar y reporte

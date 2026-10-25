@@ -1,5 +1,5 @@
 // Proyecto de evaluación: estudios, valoraciones de uno o dos revisores y consenso; persistencia, concordancia y formatos de intercambio.
-import { instOf, defMeta, evalAssessment, finalOf, LV } from './instruments.js?v=2026.10.24-2';
+import { instOf, defMeta, evalAssessment, finalOf, LV } from './instruments.js?v=2026.10.25-1';
 
 const KEY = 'epi-rob-v1';
 export const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
@@ -31,7 +31,7 @@ export function kappa(pairs, levels, weighted = false) {
   return { n: N, po: agree / N, kappa: pe === 1 ? (po === 1 ? 1 : NaN) : (po - pe) / (1 - pe) };
 }
 export const kappaLabel = k => (!isFinite(k) ? '–' : k < 0 ? 'peor que el azar' : k < 0.21 ? 'leve' : k < 0.41 ? 'regular' : k < 0.61 ? 'moderada' : k < 0.81 ? 'sustancial' : 'casi perfecta');
-const ORDINAL = { rob2: ['low', 'some', 'high'], 'robins-i': ['low', 'moderate', 'serious', 'critical'], 'robins-e': ['low', 'some', 'high', 'vhigh'] };
+const ORDINAL = { rob2: ['low', 'some', 'high'], 'robins-i': ['low', 'moderate', 'serious', 'critical'], 'robins-i2': ['low', 'moderate', 'serious', 'critical'], 'robins-e': ['low', 'some', 'high', 'vhigh'] };
 // por dominio y global: acuerdo, kappa y kappa ponderado lineal (solo escalas ordinales)
 export function agreement(p) {
   const inst = instOf(p.inst), rows = [], ev = p.studies.map(s => ({ A: evalStudy(p, s, 'A'), B: evalStudy(p, s, 'B') }));

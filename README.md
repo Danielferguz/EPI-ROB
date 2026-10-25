@@ -6,7 +6,7 @@ Nace como una versión ampliada del [evaluador de sesgo](https://jbarbozameca.gi
 
 ## Qué hace
 
-- **Instrumentos**: RoB 2 (efecto de la asignación y de adherirse), RoB 1, ROBINS-I, ROBINS-E, QUADAS-2, PROBAST, AMSTAR 2, lista JBI de prevalencia y Newcastle-Ottawa (cohortes).
+- **Instrumentos**: RoB 2 (efecto de la asignación y de adherirse), RoB 1, ROBINS-I (v1), ROBINS-I V2 (borrador nov. 2025), ROBINS-E, QUADAS-2, PROBAST, AMSTAR 2, lista JBI de prevalencia y Newcastle-Ottawa (cohortes).
 - **Guía de cada juicio**: en cada dominio, una tabla «¿cuándo corresponde cada opción?» con casos de ejemplo, y 2–3 ejemplos con estudios ficticios por instrumento.
 - **Preguntas señalizadoras** con visibilidad condicional, notas de ayuda y **algoritmo oficial** que propone el juicio (RoB 2, QUADAS-2, PROBAST, AMSTAR 2); el evaluador puede cambiarlo y debe justificarlo.
 - **Dos revisores + consenso**: acuerdo, kappa de Cohen y kappa ponderado lineal por dominio; resolución de discrepancias con un clic.
@@ -25,6 +25,8 @@ Nace como una versión ampliada del [evaluador de sesgo](https://jbarbozameca.gi
 
 ## Límites
 
+- ROBINS-I V2: los algoritmos transcriben los diagramas de la guía del 20 de noviembre de 2025 (borrador); las preguntas están parafraseadas (CC BY-NC-ND: consulte el original). Se validan enumerando todos los caminos de cada diagrama. No hay exportación robvis (robvis solo conoce la plantilla de siete dominios).
+- Figuras: estilo RevMan (cuadrícula, + ? −, leyenda por letras) o robvis, con tamaño de letra y ancho automático según la letra final en puntos.
 - ROBINS-I (v1) y RoB 1 no publican algoritmo: el juicio es del evaluador. No incluye RoB 2 para ensayos por conglomerados o cruzados ni NOS de casos y controles (cargue sus juicios con «Importar juicios»).
 - JBI y NOS: los umbrales de decisión son convenciones configurables (el JBI no los define; los de NOS son los de AHRQ).
 - Las preguntas están reformuladas en español y resumidas; no sustituyen las guías oficiales.
