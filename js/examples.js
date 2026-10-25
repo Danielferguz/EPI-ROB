@@ -1,16 +1,16 @@
 // Ejemplos didácticos con estudios FICTICIOS (no corresponden a publicaciones reales). Cada instrumento tiene varios escenarios;
 // el perfil de cada estudio (una letra por dominio) genera las respuestas, y el sustento de cada dominio se toma de la guía (guides.js).
-import { ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2 } from './instruments.js?v=2026.10.25-1';
-import { ROBINS_E, ROB1, JBI, NOS, JBI_ITEMS, NOS_ITEMS } from './instruments2.js?v=2026.10.25-1';
-import { ROBINS_I2 } from './instruments3.js?v=2026.10.25-1';
-import { newStudy } from './store.js?v=2026.10.25-1';
-import { GUIDES } from './guides.js?v=2026.10.25-1';
+import { ROB2, ROBINS_I, QUADAS2, PROBAST, AMSTAR2 } from './instruments.js?v=2026.10.25-2';
+import { ROBINS_E, ROB1, JBI, NOS, JBI_ITEMS, NOS_ITEMS } from './instruments2.js?v=2026.10.25-2';
+import { ROBINS_I2 } from './instruments3.js?v=2026.10.25-2';
+import { newStudy } from './store.js?v=2026.10.25-2';
+import { GUIDES } from './guides.js?v=2026.10.25-2';
 
 const LVL = { rob2: { L: 'low', S: 'some', H: 'high' }, 'robins-i': { L: 'low', M: 'moderate', S: 'serious', C: 'critical', N: 'ni' }, quadas2: { L: 'low', H: 'high', U: 'unclear' }, probast: { L: 'low', H: 'high', U: 'unclear' }, 'robins-e': { L: 'low', S: 'some', H: 'high', V: 'vhigh' }, 'robins-i2': { L: 'low', M: 'moderate', S: 'serious', C: 'critical' }, rob1: { L: 'low', H: 'high', U: 'unclear' } };
 const lowc = (key, k, c) => (key === 'robins-e' || key === 'robins-i2') && k === 0 && c === 'L';
 const note = (guide, d, lv) => GUIDES[guide][d]?.[lv]?.e || '';
 const fill = (inst, key, name, code, ans, meta = {}, extra = {}) => {
-  const s = newStudy(inst.id, `${name} (ejemplo ficticio)`, meta), jud = {};
+  const s = newStudy(inst.id, `${name} (fictional example)`, meta), jud = {};
   [...code].forEach((c, k) => { const d = `D${k + 1}`, lv = LVL[key][c]; jud[d] = { note: note(key, d, lowc(key, k, c) ? 'lowc' : lv), ...(extra.sel ? { sel: lowc(key, k, c) ? 'lowc' : lv } : {}), ...(extra.app?.[k] ? { app: extra.app[k] } : {}) }; });
   s.asm.A = { ans, jud }; s.vignette = [...code].map((c, k) => `D${k + 1}: ${note(key, `D${k + 1}`, lowc(key, k, c) ? 'lowc' : LVL[key][c])}`).join(' ');
   return s;
@@ -67,12 +67,12 @@ const robinsI2Set = (id, title, desc, list) => ex(id, title, desc, () => ({ inst
 const rob1Set = (id, title, desc, list) => ex(id, title, desc, () => ({ inst: ROB1, expect: list.map(([, c]) => ({ H: 'high', U: 'unclear', L: 'low' }[worst(c, ['H', 'U', 'L'])])), studies: list.map(([n, c]) => fill(ROB1, 'rob1', n, c, {}, { note: 'Desenlace principal' }, { sel: true })) }));
 
 // ---------------------------------------------------------------- JBI y NOS
-const jbiSet = (id, title, desc, list) => ex(id, title, desc, () => ({ inst: JBI, expect: list.map(([, c]) => { const a = [...c].filter(x => x !== 'x'), p = 100 * a.filter(x => x === 'y').length / a.length; return p >= 70 ? 'inc' : p < 50 ? 'exc' : 'seek'; }), studies: list.map(([n, c, meta]) => { const s = newStudy(JBI.id, `${n} (ejemplo ficticio)`, meta), ans = {}, jud = {}; [...c].forEach((x, i) => { const v = x === 'x' ? 'na' : x; ans[`i${i + 1}`] = v; const g = GUIDES.jbi[i][v === 'na' ? 'y' : v]; if (v !== 'y' && v !== 'na') jud[`i${i + 1}`] = { note: g.e }; }); s.asm.A = { ans, jud }; return s; }) }));
-const nosSet = (id, title, desc, list) => ex(id, title, desc, () => ({ inst: NOS, expect: list.map(l => l[3]), studies: list.map(([n, c, meta]) => { const s = newStudy(NOS.id, `${n} (ejemplo ficticio)`, meta), ans = {}, jud = {}; [...c].forEach((x, i) => { const it = NOS_ITEMS[i]; ans[it.id] = x; jud[it.id] = { note: GUIDES.nos[it.id][x]?.e || '' }; }); s.asm.A = { ans, jud }; return s; }) }));
+const jbiSet = (id, title, desc, list) => ex(id, title, desc, () => ({ inst: JBI, expect: list.map(([, c]) => { const a = [...c].filter(x => x !== 'x'), p = 100 * a.filter(x => x === 'y').length / a.length; return p >= 70 ? 'inc' : p < 50 ? 'exc' : 'seek'; }), studies: list.map(([n, c, meta]) => { const s = newStudy(JBI.id, `${n} (fictional example)`, meta), ans = {}, jud = {}; [...c].forEach((x, i) => { const v = x === 'x' ? 'na' : x; ans[`i${i + 1}`] = v; const g = GUIDES.jbi[i][v === 'na' ? 'y' : v]; if (v !== 'y' && v !== 'na') jud[`i${i + 1}`] = { note: g.e }; }); s.asm.A = { ans, jud }; return s; }) }));
+const nosSet = (id, title, desc, list) => ex(id, title, desc, () => ({ inst: NOS, expect: list.map(l => l[3]), studies: list.map(([n, c, meta]) => { const s = newStudy(NOS.id, `${n} (fictional example)`, meta), ans = {}, jud = {}; [...c].forEach((x, i) => { const it = NOS_ITEMS[i]; ans[it.id] = x; jud[it.id] = { note: GUIDES.nos[it.id][x]?.e || '' }; }); s.asm.A = { ans, jud }; return s; }) }));
 
 // ---------------------------------------------------------------- AMSTAR 2
 const am = (name, r, meta) => {
-  const s = newStudy('amstar2', `${name} (ejemplo ficticio)`, meta), ans = {}, chk = {}, jud = {};
+  const s = newStudy('amstar2', `${name} (fictional example)`, meta), ans = {}, chk = {}, jud = {};
   AMSTAR2.items.forEach((it, i) => {
     const v = r[i]; if (v === 'n' || v === 'py') jud[`i${it.n}`] = { note: GUIDES.amstar2[i][v]?.e || '' };
     if (it.yn) { ans[`i${it.n}`] = v === 'y' ? 'y' : 'n'; return; }
@@ -124,7 +124,7 @@ export const EXAMPLES = {
     nosSet('dieta', 'Dieta mediterránea y mortalidad', 'Cohortes poblacionales con distinta calidad de seguimiento.', [['Iglesias 2014', 'aabaaaaab', { main: 'edad y sexo' }, 'qgood'], ['Jara 2016', 'ccdabbdbc', { main: 'edad y sexo' }, 'qpoor'], ['Lara 2019', 'abcaabbab', { main: 'edad y sexo' }, 'qfair']]),
   ],
   amstar2: [
-    amSet('estatinas', 'Revisiones de estatinas', 'De una revisión impecable a otra con tres fallos críticos.', [['Revisión A', Yx, 'chigh', { st: 'rct', ma: 'yes' }], ['Revisión B', withv([3, 5], 'n'), 'cmod', { st: 'both', ma: 'yes' }], ['Revisión C', withv([2], 'n'), 'clow', { st: 'rct', ma: 'yes' }], ['Revisión D', withv([2, 4, 7], 'n'), 'ccrit', { st: 'nrsi', ma: 'yes' }], ['Revisión E', withv([10], 'n'), 'chigh', { st: 'rct', ma: 'no' }]]),
-    amSet('dieta', 'Revisiones sobre dieta y mortalidad', 'Revisiones con «Sí parcial» (no cuentan como debilidad) y sin metaanálisis.', [['Revisión F', withv([2, 4, 8, 9], 'py'), 'chigh', { st: 'both', ma: 'yes' }], ['Revisión G', withv([13], 'n', withv([2, 4], 'py')), 'clow', { st: 'nrsi', ma: 'no' }], ['Revisión H', withv([1, 3, 5, 6, 12], 'n'), 'cmod', { st: 'rct', ma: 'yes' }]]),
+    amSet('estatinas', 'Revisiones de estatinas', 'De una revisión impecable a otra con tres fallos críticos.', [['Review A', Yx, 'chigh', { st: 'rct', ma: 'yes' }], ['Review B', withv([3, 5], 'n'), 'cmod', { st: 'both', ma: 'yes' }], ['Review C', withv([2], 'n'), 'clow', { st: 'rct', ma: 'yes' }], ['Review D', withv([2, 4, 7], 'n'), 'ccrit', { st: 'nrsi', ma: 'yes' }], ['Review E', withv([10], 'n'), 'chigh', { st: 'rct', ma: 'no' }]]),
+    amSet('dieta', 'Revisiones sobre dieta y mortalidad', 'Revisiones con «Sí parcial» (no cuentan como debilidad) y sin metaanálisis.', [['Review F', withv([2, 4, 8, 9], 'py'), 'chigh', { st: 'both', ma: 'yes' }], ['Review G', withv([13], 'n', withv([2, 4], 'py')), 'clow', { st: 'nrsi', ma: 'no' }], ['Review H', withv([1, 3, 5, 6, 12], 'n'), 'cmod', { st: 'rct', ma: 'yes' }]]),
   ],
 };

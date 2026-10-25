@@ -1,14 +1,15 @@
 // Figuras de riesgo de sesgo en SVG: semáforo (estudios × dominios) y barras de resumen (proporción por dominio, opcionalmente ponderada).
 // Dos estilos: «robvis» (círculos sin cuadrícula) y «revman» (cuadrícula negra con círculos + / ? / −, como las figuras de RevMan).
 // El tamaño de letra fs (unidades de la figura) escala textos y espaciados; el ancho final lo fija figs.js (ver data-fs).
-import { LV } from './instruments.js?v=2026.10.25-1';
+import { LV } from './instruments.js?v=2026.10.25-2';
+import { LVEN } from './en.js?v=2026.10.25-2';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const style = fs => `<style>text{font:${fs}px system-ui,sans-serif;fill:currentColor}.h{font-weight:600}.m{fill:var(--muted,#666)}.s{font-size:${+(fs * 0.92).toFixed(2)}px}</style>`;
 const dark = new Set(['some', 'moderate', 'unclear', 'ni', 'py', 'na', 'cmod', 'conc_unclear', 'seek', 'qfair', 'lowc']);
 const wrap = (t, n) => { const w = String(t).split(/\s+/), out = []; let cur = ''; for (const x of w) { if ((cur + ' ' + x).trim().length > n && cur) { out.push(cur); cur = x; } else cur = (cur + ' ' + x).trim(); } if (cur) out.push(cur); return out; };
 // colores y símbolos de RevMan (verde +, amarillo ?, rojo −); los niveles extra de ROBINS-I/E mantienen símbolos propios
 const RM = { low: ['#66CC33', '+'], lowc: ['#66CC33', '+'], some: ['#EEEE55', '?'], unclear: ['#EEEE55', '?'], ni: ['#EEEE55', '?'], moderate: ['#EEEE55', '?'], high: ['#D8361F', '−'], serious: ['#F28C28', '×'], critical: ['#8B1A1A', '!'], vhigh: ['#8B1A1A', '!'] };
-export const look = (l, st) => { const d = LV[l]; if (!d) return null; const r = st === 'revman' && RM[l]; return { c: r ? r[0] : d.c, s: r ? r[1] : d.s, t: d.t, ink: st === 'revman' ? '#000000' : (dark.has(l) ? '#1B1B1B' : '#FFFFFF') }; };
+export const look = (l, st) => { const d = LV[l]; if (!d) return null; const r = st === 'revman' && RM[l]; return { c: r ? r[0] : d.c, s: r ? r[1] : d.s, t: LVEN[l] || d.t, ink: st === 'revman' ? '#000000' : (dark.has(l) ? '#1B1B1B' : '#FFFFFF') }; };
 const dom = id => /^D\d+$/.test(String(id));
 const letter = i => String.fromCharCode(65 + i);
 
@@ -31,14 +32,14 @@ export function trafficLight(rows, cols, { title = '', legend = [], legendOveral
   const cw = rm ? Math.max(Math.round(fs * 2.7), Math.round(fs * 4.4)) : cell * k, ch = rm ? Math.round(fs * 2.7) : cell * k;
   const rowH = Math.max(ch, ...names.map(n => lh * n.length + 6 * k)), nc = cols.length + (overall ? 1 : 0), gap = overall ? 12 * k : 0;
   const x0 = rm ? 8 + lw + 14 * k : lw + 14 * k, top = (rm ? 30 : 36) * k + (title ? 18 * k : 0);
-  const heads = [...cols.map((c, i) => (rm && cols.every(q => dom(q.id)) ? letter(i) : (c.short ?? c.id))), ...(overall ? ['Global'] : [])];
+  const heads = [...cols.map((c, i) => (rm && cols.every(q => dom(q.id)) ? letter(i) : (c.short ?? c.id))), ...(overall ? ['Overall'] : [])];
   // leyenda de dominios (RevMan): (A) nombre completo
   const keyLines = rm && cols.every(c => dom(c.id) && c.name) ? cols.flatMap((c, i) => wrap(`(${letter(i)}) ${c.name}`, Math.round(110 / k * 1.1))) : [];
   const Wn = x0 + nc * cw + gap + 20 * k, W = Math.max(Wn, 300 * k, rm ? 420 * k : 0);
   const nl = L => (L ? (legendRow(L, 8, 0, W, fs, st).y / (20 * k)) + 1 : 0);
   const keyH = keyLines.length ? keyLines.length * lh + 14 * k : 0;
   const H = top + rows.length * rowH + 16 * k + keyH + 22 * k * (nl(legend) + nl(legendOverall)) + (rm ? 6 * k : 0);
-  let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${+W.toFixed(1)} ${+H.toFixed(1)}" data-fs="${fs}" class="plot" role="img" aria-label="${esc(title || 'Semáforo de riesgo de sesgo')}" style="max-width:${Math.round(W * 1.15)}px">${style(fs)}`;
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${+W.toFixed(1)} ${+H.toFixed(1)}" data-fs="${fs}" class="plot" role="img" aria-label="${esc(title || 'Traffic-light plot of risk of bias')}" style="max-width:${Math.round(W * 1.15)}px">${style(fs)}`;
   if (title) s += `<text x="8" y="${18 * k}" class="h">${esc(title)}</text>`;
   const cx = i => x0 + i * cw + cw / 2 + (overall && i === cols.length ? gap : 0);
   heads.forEach((h, i) => { s += `<text x="${cx(i)}" y="${top - 10 * k}" text-anchor="middle" class="${i === cols.length && overall ? 'h' : cols[i]?.crit ? 'h' : ''}">${esc(h)}</text>`; });
@@ -65,7 +66,7 @@ export function summaryBar(cols, counts, levels, { title = '', weighted = false,
   const labels = cols.map((c, i) => (pad ? `(${letter(i)}) ${c.name}` : c.name)), lines = labels.map(t => wrap(t, 40));
   const lw = Math.min(300 * k, 6.4 * k * Math.max(...lines.map(l => Math.max(...l.map(t => t.length))), 8)), x0 = lw + 14 * k, bw = 380 * k, W = Math.max(x0 + bw + 30 * k, 540 * k), rowH = 32 * k, top = 34 * k + (title ? 18 * k : 0);
   const nLeg = legendRow(levels, 0, 0, W, fs, st).y / (20 * k) + 1, H = top + cols.length * rowH + 50 * k + 20 * k * nLeg;
-  let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${+W.toFixed(1)} ${+H.toFixed(1)}" data-fs="${fs}" class="plot" role="img" aria-label="${esc(title || 'Resumen de riesgo de sesgo')}" style="max-width:${Math.round(W * 1.15)}px">${style(fs)}`;
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${+W.toFixed(1)} ${+H.toFixed(1)}" data-fs="${fs}" class="plot" role="img" aria-label="${esc(title || 'Summary plot of risk of bias')}" style="max-width:${Math.round(W * 1.15)}px">${style(fs)}`;
   if (title) s += `<text x="8" y="${18 * k}" class="h">${esc(title)}</text>`;
   cols.forEach((c, i) => {
     const y = top + i * rowH, cn = counts[c.id] || {}, tot = levels.reduce((a, l) => a + (cn[l] || 0), 0) || 1; let x = x0;
@@ -79,6 +80,6 @@ export function summaryBar(cols, counts, levels, { title = '', weighted = false,
   });
   const yb = top + cols.length * rowH + 2 * k; s += `<line x1="${x0}" x2="${x0 + bw}" y1="${yb}" y2="${yb}" stroke="currentColor" stroke-width=".7"/>`;
   [0, 25, 50, 75, 100].forEach(v => { const x = x0 + v / 100 * bw; s += `<line x1="${x}" x2="${x}" y1="${yb}" y2="${yb + 4 * k}" stroke="currentColor"/><text x="${x}" y="${yb + 16 * k}" text-anchor="middle" class="s">${v} %</text>`; });
-  s += `<text x="${x0 + bw / 2}" y="${yb + 30 * k}" text-anchor="middle" class="s m">${weighted ? 'Proporción ponderada por el peso de cada estudio' : 'Proporción de estudios'}</text>`;
+  s += `<text x="${x0 + bw / 2}" y="${yb + 30 * k}" text-anchor="middle" class="s m">${weighted ? 'Proportion weighted by study weight' : 'Proportion of studies'}</text>`;
   return s + legendRow(levels, 8, yb + 48 * k, W, fs, st).s + '</svg>';
 }
